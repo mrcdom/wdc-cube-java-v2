@@ -6,6 +6,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:flutter_commons/flutter_commons.dart';
 
 import 'package:flutter_mobile/main.dart';
 
@@ -17,7 +18,7 @@ void main() {
     await tester.pumpWidget(const ConnectionErrorApp(endpoint: endpoint));
 
     expect(find.byIcon(Icons.cloud_off), findsOneWidget);
-    expect(find.text('Could not connect to the server.'), findsOneWidget);
+    expect(find.text(StoreI18n.text(MessageKeys.errorConnection)), findsOneWidget);
     expect(find.text(endpoint), findsOneWidget);
   });
 }

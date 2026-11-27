@@ -44,7 +44,7 @@ public class HomeView extends AbstractRemoteView {
         var scope = scope();
         viewData.nickName = scope.getString("nickName", "");
         viewData.cartCount = String.valueOf(scope.getInt("cartItemCount"));
-        viewData.errorMessage = scope.getString("errorMessage");
+        viewData.errorMessage = getMessage("errorMessage");
 
         var productsPanelVsid = scope.getString("productsPanelViewId");
         var purchasesPanelVsid = scope.getString("purchasesPanelViewId");

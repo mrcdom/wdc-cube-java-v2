@@ -15,6 +15,7 @@ import br.com.wdc.framework.cube.FormParam;
 import br.com.wdc.framework.cube.ScopeSlot;
 import br.com.wdc.framework.domain.exception.OfflineException;
 import br.com.wdc.store.domain.exception.InvalidCartItemException;
+import br.com.wdc.store.i18n.Messages;
 import br.com.wdc.store.presentation.StoreApplication;
 import br.com.wdc.store.presentation.presenter.restricted.home.HomeKeys;
 import br.com.wdc.store.presentation.presenter.restricted.receipt.ReceiptKeys;
@@ -181,31 +182,31 @@ public class CartPresenter extends AbstractCubePresenter<StoreApplication> {
 
     protected void alertThereIsItemWhichValueIsLessThanOne() {
         this.scope.errorCode.set(1);
-        this.scope.errorMessage.set("The cart must have at least one item to complete a purchase");
+        this.scope.errorMessage.set(Messages.errorCartEmptyPurchase());
         this.clearErrorAfterDelay();
     }
 
     protected void alertProductNotFound() {
         this.scope.errorCode.set(2);
-        this.scope.errorMessage.set("Product not found in the database.");
+        this.scope.errorMessage.set(Messages.errorCartProductNotFound());
         this.clearErrorAfterDelay();
     }
 
     protected void alertPurchaseOfEmptyCart() {
         this.scope.errorCode.set(3);
-        this.scope.errorMessage.set("Some products have a quantity of less than one item. Unable to purchase.");
+        this.scope.errorMessage.set(Messages.errorCartQuantityBelowOne());
         this.clearErrorAfterDelay();
     }
 
     protected void alertDatabaseOffline() {
         this.scope.errorCode.set(4);
-        this.scope.errorMessage.set("The database is currently offline. Please wait a moment and try again.");
+        this.scope.errorMessage.set(Messages.errorDatabaseOffline());
         this.clearErrorAfterDelay();
     }
 
     protected void errorMalformedQuantityValue() {
         this.scope.errorCode.set(6);
-        this.scope.errorMessage.set("The quantity value is malformed.");
+        this.scope.errorMessage.set(Messages.errorCartQuantityMalformed());
         this.clearErrorAfterDelay();
     }
 

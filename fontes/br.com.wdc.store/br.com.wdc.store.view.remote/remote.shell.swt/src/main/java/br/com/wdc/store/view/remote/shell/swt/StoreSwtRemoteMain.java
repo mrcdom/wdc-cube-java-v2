@@ -1,5 +1,7 @@
 package br.com.wdc.store.view.remote.shell.swt;
 
+import java.util.Map;
+
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.StackLayout;
 import org.eclipse.swt.graphics.Image;
@@ -8,6 +10,9 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import br.com.wdc.store.i18n.StoreMessages;
+import br.com.wdc.store.view.swt.util.I18n;
 
 /**
  * Entry point for the SWT Remote Shell.
@@ -43,7 +48,7 @@ public class StoreSwtRemoteMain {
 			// icon set via -Xdock:icon or apple.awt.application.icon.
 			setDockIcon(display);
 			var shell = new Shell(display, SWT.SHELL_TRIM);
-			shell.setText("WDC Store (Remote)");
+			shell.setText(I18n.format(StoreMessages.SWT_REMOTE_WINDOW_TITLE, Map.of("name", I18n.text(StoreMessages.APP_NAME))));
 			shell.setSize(WINDOW_WIDTH, WINDOW_HEIGHT);
 			shell.setLayout(new StackLayout());
 			applyAppIcons(display, shell);

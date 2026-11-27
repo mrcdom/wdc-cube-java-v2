@@ -15,6 +15,8 @@ import br.com.wdc.framework.cube.remote.bridge.teavm.RemoteView;
 import br.com.wdc.framework.cube.remote.bridge.teavm.ViewScope;
 import br.com.wdc.framework.cube.remote.bridge.teavm.ScopeCoordinator;
 import br.com.wdc.framework.cube.remote.bridge.teavm.interop.JsRunnable;
+import br.com.wdc.store.i18n.Message;
+import br.com.wdc.store.view.teavm.commons.I18n;
 import br.com.wdc.store.view.teavm.commons.VDom;
 import br.com.wdc.store.view.teavm.commons.VNode;
 
@@ -110,6 +112,11 @@ public abstract class AbstractRemoteView implements RemoteView {
             scope.setForceUpdate(this::forceUpdate);
         }
         return scope;
+    }
+
+    /** The message of a scope field that travels as {@code {"key": ..., "args": {...}}}; {@code null} for none. */
+    protected Message getMessage(String field) {
+        return I18n.message(scope().getValues().get(field));
     }
 
     protected void submit(int eventId) {

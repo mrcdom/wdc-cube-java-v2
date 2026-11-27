@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 
 import 'package:remote_bridge_flutter/remote_bridge_flutter.dart';
 import '../design_tokens.dart';
+import '../generated/messages.dart' show MessageKeys;
+import '../i18n.dart';
 import '../widgets/error_banner.dart';
 
 
@@ -31,7 +33,8 @@ class _LoginViewState extends BaseViewState<LoginView> {
 
   @override
   Widget build(BuildContext context) {
-    final errorMessage = scope['errorMessage'] as String?;
+    final message = StoreI18n.message(scope['errorMessage']);
+    final errorMessage = message.isEmpty ? null : message;
     final loading = scope['loading'] == true;
 
     return LayoutBuilder(builder: (context, constraints) {
@@ -79,24 +82,24 @@ class _LoginViewState extends BaseViewState<LoginView> {
                     width: 80,
                     height: 80,
                     decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.12),
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(color: Colors.white.withValues(alpha: 0.2)),
+                      color: appOnPrimary.withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(radiusRound),
+                      border: Border.all(color: appOnPrimary.withValues(alpha: 0.2)),
                     ),
-                    child: const Icon(Icons.shopping_bag_outlined, size: 40, color: Colors.white),
+                    child: const Icon(Icons.shopping_bag_outlined, size: 40, color: appOnPrimary),
                   ),
                   const SizedBox(height: 16),
-                  const Text('WDC Store',
-                      style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Colors.white)),
+                  Text(StoreI18n.text(MessageKeys.appName),
+                      style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: appOnPrimary)),
                   const SizedBox(height: 8),
-                  Text('Your trusted online store.',
-                      style: TextStyle(fontSize: 16, color: Colors.white.withValues(alpha: 0.8))),
+                  Text(StoreI18n.text(MessageKeys.appTagline),
+                      style: TextStyle(fontSize: 16, color: appOnPrimary.withValues(alpha: 0.8))),
                   const SizedBox(height: 32),
-                  _featureRow(Icons.shield_outlined, 'Secure checkout'),
+                  _featureRow(Icons.shield_outlined, StoreI18n.text(MessageKeys.loginFeatureSecureCheckout)),
                   const SizedBox(height: 12),
-                  _featureRow(Icons.local_shipping_outlined, 'Fast delivery'),
+                  _featureRow(Icons.local_shipping_outlined, StoreI18n.text(MessageKeys.loginFeatureFastDelivery)),
                   const SizedBox(height: 12),
-                  _featureRow(Icons.autorenew, 'Hassle-free returns'),
+                  _featureRow(Icons.autorenew, StoreI18n.text(MessageKeys.loginFeatureReturns)),
                 ],
               ),
             ),
@@ -110,9 +113,9 @@ class _LoginViewState extends BaseViewState<LoginView> {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Icon(icon, color: Colors.white.withValues(alpha: 0.9), size: 20),
+        Icon(icon, color: appOnPrimary.withValues(alpha: 0.9), size: 20),
         const SizedBox(width: 8),
-        Text(text, style: TextStyle(color: Colors.white.withValues(alpha: 0.9), fontSize: 14)),
+        Text(text, style: TextStyle(color: appOnPrimary.withValues(alpha: 0.9), fontSize: 14)),
       ],
     );
   }
@@ -122,7 +125,7 @@ class _LoginViewState extends BaseViewState<LoginView> {
     height: size,
     decoration: BoxDecoration(
       shape: BoxShape.circle,
-      color: Colors.white.withValues(alpha: alpha),
+      color: appOnPrimary.withValues(alpha: alpha),
     ),
   );
 
@@ -169,17 +172,17 @@ class _LoginViewState extends BaseViewState<LoginView> {
                             width: 48,
                             height: 48,
                             decoration: BoxDecoration(
-                              color: Colors.white.withValues(alpha: 0.12),
-                              borderRadius: BorderRadius.circular(12),
-                              border: Border.all(color: Colors.white.withValues(alpha: 0.2)),
+                              color: appOnPrimary.withValues(alpha: 0.12),
+                              borderRadius: BorderRadius.circular(radiusLg),
+                              border: Border.all(color: appOnPrimary.withValues(alpha: 0.2)),
                             ),
-                            child: const Icon(Icons.shopping_bag_outlined, size: 24, color: Colors.white),
+                            child: const Icon(Icons.shopping_bag_outlined, size: 24, color: appOnPrimary),
                           ),
                           const SizedBox(height: 8),
-                          const Text('WDC Store',
-                              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white)),
-                          const Text('Your trusted online store.',
-                              style: TextStyle(fontSize: 12, color: Colors.white70)),
+                          Text(StoreI18n.text(MessageKeys.appName),
+                              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: appOnPrimary)),
+                          Text(StoreI18n.text(MessageKeys.appTagline),
+                              style: TextStyle(fontSize: 12, color: appOnPrimary.withValues(alpha: 0.7))),
                         ],
                       ),
                     ],
@@ -195,37 +198,37 @@ class _LoginViewState extends BaseViewState<LoginView> {
                     mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      const Text('Welcome', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+                      Text(StoreI18n.text(MessageKeys.loginWelcome), style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
                       const SizedBox(height: 4),
-                      const Text('Sign in with your credentials to continue',
-                          style: TextStyle(fontSize: 14, color: appTextSecondary)),
+                      Text(StoreI18n.text(MessageKeys.loginSubtitle),
+                          style: const TextStyle(fontSize: 14, color: appTextSecondary)),
                       const SizedBox(height: 28),
                       if (errorMessage != null) ...[
                         ErrorBanner(message: errorMessage),
                         const SizedBox(height: 16),
                       ],
-                      const Text('Username', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500)),
+                      Text(StoreI18n.text(MessageKeys.loginUsername), style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500)),
                       const SizedBox(height: 4),
                       TextField(
                         controller: _userController,
                         enabled: !loading,
-                        decoration: const InputDecoration(
-                          hintText: 'Enter your username',
-                          border: OutlineInputBorder(),
+                        decoration: InputDecoration(
+                          hintText: StoreI18n.text(MessageKeys.loginUsernamePlaceholder),
+                          border: const OutlineInputBorder(),
                           isDense: true,
                         ),
                         onSubmitted: (_) => _emitLogin(),
                       ),
                       const SizedBox(height: 16),
-                      const Text('Password', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500)),
+                      Text(StoreI18n.text(MessageKeys.loginPassword), style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500)),
                       const SizedBox(height: 4),
                       TextField(
                         controller: _passController,
                         enabled: !loading,
                         obscureText: true,
-                        decoration: const InputDecoration(
-                          hintText: 'Enter your password',
-                          border: OutlineInputBorder(),
+                        decoration: InputDecoration(
+                          hintText: StoreI18n.text(MessageKeys.loginPasswordPlaceholder),
+                          border: const OutlineInputBorder(),
                           isDense: true,
                         ),
                         onSubmitted: (_) => _emitLogin(),
@@ -237,8 +240,8 @@ class _LoginViewState extends BaseViewState<LoginView> {
                           onPressed: loading ? null : _emitLogin,
                           style: accentButtonStyle,
                           child: loading
-                              ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                              : const Text('Sign in', style: TextStyle(fontSize: 16)),
+                              ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: appOnPrimary))
+                              : Text(StoreI18n.text(MessageKeys.loginSignIn), style: const TextStyle(fontSize: 16)),
                         ),
                       ),
                       const SizedBox(height: 20),
@@ -252,7 +255,7 @@ class _LoginViewState extends BaseViewState<LoginView> {
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            const Text('Demo access: ', style: TextStyle(fontSize: 12, color: appTextSecondary)),
+                            Text('${StoreI18n.text(MessageKeys.loginDemoAccess)} ', style: const TextStyle(fontSize: 12, color: appTextSecondary)),
                             const Text('admin', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: appAccent)),
                             const Text(' / ', style: TextStyle(fontSize: 12, color: appTextSecondary)),
                             const Text('admin', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: appAccent)),

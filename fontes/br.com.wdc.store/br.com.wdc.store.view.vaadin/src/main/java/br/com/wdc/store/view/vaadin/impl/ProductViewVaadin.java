@@ -1,7 +1,5 @@
 package br.com.wdc.store.view.vaadin.impl;
 
-import java.text.NumberFormat;
-import java.util.Locale;
 import java.util.Objects;
 
 import com.vaadin.flow.component.button.ButtonVariant;
@@ -14,9 +12,11 @@ import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.IntegerField;
 
+import br.com.wdc.store.i18n.StoreMessages;
 import br.com.wdc.store.presentation.presenter.restricted.products.ProductScope;
 import br.com.wdc.store.view.vaadin.AbstractViewVaadin;
 import br.com.wdc.store.view.vaadin.StoreVaadinApplication;
+import br.com.wdc.store.view.vaadin.util.I18n;
 import br.com.wdc.store.view.vaadin.util.ResourceCatalog;
 import br.com.wdc.store.view.vaadin.util.VaadinDom;
 
@@ -73,7 +73,7 @@ public class ProductViewVaadin extends AbstractViewVaadin<ProductScope> {
         }
 
         if (this.priceOldValue != this.scope.product.get().price) {
-            this.priceElm.setText(NumberFormat.getCurrencyInstance(Locale.US).format(this.scope.product.get().price));
+            this.priceElm.setText(I18n.price(this.scope.product.get().price));
             this.priceOldValue = this.scope.product.get().price;
         }
 
@@ -84,7 +84,7 @@ public class ProductViewVaadin extends AbstractViewVaadin<ProductScope> {
         }
 
         if (this.scope.errorCode.get() != 0) {
-            Notification.show(this.scope.errorMessage.get(), 5000, Notification.Position.TOP_CENTER)
+            Notification.show(text(this.scope.errorMessage.get()), 5000, Notification.Position.TOP_CENTER)
                     .addThemeVariants(NotificationVariant.LUMO_ERROR);
             // Consumed while drawing: a redraw now would take the message away
             this.scope.errorCode.setSilently(0);
@@ -130,7 +130,7 @@ public class ProductViewVaadin extends AbstractViewVaadin<ProductScope> {
 
             this.priceElm = new Span();
             this.priceElm.addClassName("lbl-price-val");
-            this.priceElm.setText(NumberFormat.getCurrencyInstance(Locale.US).format(this.scope.product.get().price));
+            this.priceElm.setText(I18n.price(this.scope.product.get().price));
             this.priceOldValue = this.scope.product.get().price;
             infoPanel.add(this.priceElm);
 
@@ -142,14 +142,14 @@ public class ProductViewVaadin extends AbstractViewVaadin<ProductScope> {
             infoPanel.add(actionRow);
 
             this.quantityElm = new IntegerField();
-            this.quantityElm.setLabel("Quantity");
+            this.quantityElm.setLabel(text(StoreMessages.VAADIN_QUANTITY));
             this.quantityElm.setValue(1);
             this.quantityElm.setMin(1);
             this.quantityElm.setStepButtonsVisible(true);
             this.quantityElm.addClassName("fld-quantity");
             actionRow.add(this.quantityElm);
 
-            var addBtn = new com.vaadin.flow.component.button.Button("Add to Cart");
+            var addBtn = new com.vaadin.flow.component.button.Button(text(StoreMessages.PRODUCT_ADD_TO_CART));
             addBtn.setIcon(VaadinIcon.CART.create());
             addBtn.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
             addBtn.addClickListener(e -> safeAction("Add to cart", this::emitBuyClicked));
@@ -170,7 +170,7 @@ public class ProductViewVaadin extends AbstractViewVaadin<ProductScope> {
 
         // Description label
         dom.span(label -> {
-            label.setText("Description");
+            label.setText(text(StoreMessages.VAADIN_DESCRIPTION));
             label.getStyle()
                     .set("color", "var(--lumo-secondary-text-color)")
                     .set("font-weight", "600")
@@ -191,7 +191,7 @@ public class ProductViewVaadin extends AbstractViewVaadin<ProductScope> {
 
         // Back button - bottom
         dom.button(button -> {
-            button.setText("Back to products");
+            button.setText(text(StoreMessages.RECEIPT_BACK_TO_PRODUCTS));
             button.setIcon(VaadinIcon.ARROW_LEFT.create());
             button.addThemeVariants(ButtonVariant.LUMO_TERTIARY, ButtonVariant.LUMO_SMALL);
             button.addClassName("back-button");

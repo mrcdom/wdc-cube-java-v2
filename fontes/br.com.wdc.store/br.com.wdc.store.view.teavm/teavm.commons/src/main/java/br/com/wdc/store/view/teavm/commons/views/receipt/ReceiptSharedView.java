@@ -13,9 +13,11 @@ import java.util.function.Supplier;
 import org.teavm.jso.dom.events.Event;
 import org.teavm.jso.dom.events.EventListener;
 
+import br.com.wdc.store.i18n.StoreMessages;
 import br.com.wdc.store.presentation.presenter.restricted.receipt.ReceiptScope;
 import br.com.wdc.store.presentation.presenter.restricted.receipt.structs.ReceiptItem;
 import br.com.wdc.store.view.teavm.commons.DateUtils;
+import br.com.wdc.store.view.teavm.commons.I18n;
 import br.com.wdc.store.view.teavm.commons.SelComponents;
 import br.com.wdc.store.view.teavm.commons.SelIcons;
 import br.com.wdc.store.view.teavm.commons.SelUtility;
@@ -87,9 +89,11 @@ public class ReceiptSharedView extends SharedVDomView {
             items = scope.receipt.get().items != null ? scope.receipt.get().items : Collections.emptyList();
             if (scope.receipt.get().date != null && scope.receipt.get().date > 0) {
                 dateText = DateUtils.formatDateTime(scope.receipt.get().date);
+            } else {
+                dateText = I18n.text(StoreMessages.FORMAT_DATE_UNAVAILABLE);
             }
             var total = scope.receipt.get().total != null ? scope.receipt.get().total : 0.0;
-            totalText = "$" + String.format("%.2f", total);
+            totalText = I18n.price(total);
         }
 
         // @formatter:off
@@ -98,27 +102,27 @@ public class ReceiptSharedView extends SharedVDomView {
             // Success banner
             div(showSuccess ? Sel.SUCCESS_VISIBLE : Sel.HIDDEN).children(
               span(Sel.SUCCESS_ICON),
-              span(Sel.SUCCESS_TEXT).text("Purchase completed successfully!")),
+              span(Sel.SUCCESS_TEXT).text(I18n.text(StoreMessages.RECEIPT_COMPLETED))),
             div(Sel.CARD).children(
               // Header
               div(Sel.HEADER_ROW).children(
                 div(Sel.HEADER_ICON_BOX)
                   .children(span(Sel.HEADER_ICON)),
                 div().children(
-                  h5(Sel.HEADER_TITLE).text("Purchase Receipt"),
-                  span(Sel.HEADER_SUBTITLE).text("WDC Store"))),
+                  h5(Sel.HEADER_TITLE).text(I18n.text(StoreMessages.RECEIPT_TITLE)),
+                  span(Sel.HEADER_SUBTITLE).text(I18n.text(StoreMessages.APP_NAME)))),
               // Receipt content
               div(Sel.RECEIPT_BODY).children(
                 div(Sel.DATE_ROW).children(
-                  span(Sel.DATE_LABEL).text("Date:"),
+                  span(Sel.DATE_LABEL).text(I18n.text(StoreMessages.RECEIPT_DATE)),
                   span(Sel.DATE_VALUE).text(dateText)),
                 renderItemsTable(items),
                 div(Sel.TOTAL_ROW).children(
-                  span(Sel.TOTAL_LABEL).text("TOTAL:"),
+                  span(Sel.TOTAL_LABEL).text(I18n.text(StoreMessages.RECEIPT_TOTAL)),
                   span(Sel.TOTAL_VALUE).text(totalText))),
               // Back button
               spActionButton().cls(Sel.BACK_BTN)
-                .children(span(SelIcons.ARROW_LEFT), span().text(" Back to products"))
+                .children(span(SelIcons.ARROW_LEFT), span().text(" " + I18n.text(StoreMessages.RECEIPT_BACK_TO_PRODUCTS)))
                 .on("click", backListener))));
         // @formatter:on
     }
@@ -127,9 +131,9 @@ public class ReceiptSharedView extends SharedVDomView {
         // @formatter:off
         return div().children(
           div(Sel.TABLE_HEADER).children(
-            span(Sel.COL_ITEM).text("ITEM"),
-            span(Sel.COL_QTY).text("QTY"),
-            span(Sel.COL_VALUE).text("PRICE")),
+            span(Sel.COL_ITEM).text(I18n.text(StoreMessages.RECEIPT_ITEM)),
+            span(Sel.COL_QTY).text(I18n.text(StoreMessages.RECEIPT_QUANTITY)),
+            span(Sel.COL_VALUE).text(I18n.text(StoreMessages.RECEIPT_PRICE))),
           div().children(items.stream().map(this::renderItemRow).toList()));
         // @formatter:on
     }
@@ -137,7 +141,7 @@ public class ReceiptSharedView extends SharedVDomView {
     private VNode renderItemRow(ReceiptItem item) {
         var desc = item.description != null ? item.description : "";
         var qty = String.valueOf(item.quantity);
-        var value = "$" + String.format("%.2f", item.value);
+        var value = I18n.price(item.value);
 
         // @formatter:off
         return div(Sel.ITEM_ROW).key(desc + qty).children(

@@ -1,10 +1,13 @@
 // End to end against a running remote host (WDC_ENDPOINT, by default http://localhost:8080 — on the Android
 // emulator, http://10.0.2.2:8080): signs in as jdoe, buys a product and sees the receipt.
 //
+// The texts come from the catalog, so it passes in any of the device's languages.
+//
 //   flutter test integration_test -d <device> [--dart-define=WDC_ENDPOINT=http://host:port]
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
+import 'package:flutter_commons/flutter_commons.dart';
 
 import 'package:flutter_desktop/main.dart' as app;
 
@@ -37,12 +40,12 @@ void main() {
     );
 
     // A session restored from the device's storage skips the sign-in
-    final signIn = find.text('Sign in');
+    final signIn = find.text(StoreI18n.text(MessageKeys.loginSignIn));
     await pumpUntil(
       tester,
       find.byWidgetPredicate(
         (w) =>
-            (w is Text && w.data == 'Sign in') ||
+            (w is Text && w.data == StoreI18n.text(MessageKeys.loginSignIn)) ||
             w.runtimeType.toString() == '_ProductCard',
       ),
     );
@@ -55,10 +58,10 @@ void main() {
     await pumpUntil(tester, product);
     await tester.ensureVisible(product.first);
     await tester.tap(product.first);
-    await pumpUntil(tester, find.text('Add to Cart'));
-    await tester.tap(find.text('Add to Cart'));
-    await pumpUntil(tester, find.text('Checkout'));
-    await tester.tap(find.text('Checkout'));
-    await pumpUntil(tester, find.text('Purchase completed successfully!'));
+    await pumpUntil(tester, find.text(StoreI18n.text(MessageKeys.productAddToCart)));
+    await tester.tap(find.text(StoreI18n.text(MessageKeys.productAddToCart)));
+    await pumpUntil(tester, find.text(StoreI18n.text(MessageKeys.cartCheckout)));
+    await tester.tap(find.text(StoreI18n.text(MessageKeys.cartCheckout)));
+    await pumpUntil(tester, find.text(StoreI18n.text(MessageKeys.receiptCompleted)));
   });
 }

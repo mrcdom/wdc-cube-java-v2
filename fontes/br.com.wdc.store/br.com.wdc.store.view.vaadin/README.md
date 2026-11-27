@@ -46,7 +46,7 @@ The UI is built programmatically using native Vaadin components:
 - **Scroller** for the scrollable content area
 - **H2, H3, H4** for semantic headings
 
-The CSS theme uses **Lumo design tokens** (`var(--lumo-*)`) to keep Vaadin's native look.
+The CSS theme uses the **Lumo variables** (`var(--lumo-*)`) to keep Vaadin's native look, pointed at the store's design tokens (`styles/tokens.css`, the `--store-*` properties generated from [`br.com.wdc.store.design`](../br.com.wdc.store.design/README.md)).
 
 ### DSL for building the UI
 

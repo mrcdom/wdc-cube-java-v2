@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
 import '../design_tokens.dart';
+import '../generated/messages.dart' show MessageKeys;
+import '../i18n.dart';
 import '../utils/format_utils.dart';
 import '../widgets/page_card.dart';
 import '../widgets/status_banner.dart';
@@ -41,7 +43,7 @@ class _ReceiptViewState extends BaseViewState<ReceiptView> {
                   Padding(
                     padding: const EdgeInsets.only(bottom: 16),
                     child: StatusBanner(
-                      message: 'Purchase completed successfully!',
+                      message: StoreI18n.text(MessageKeys.receiptCompleted),
                       severity: StatusSeverity.success,
                     ),
                   ),
@@ -53,10 +55,10 @@ class _ReceiptViewState extends BaseViewState<ReceiptView> {
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
                       // Header
-                      const ViewHeader(
+                      ViewHeader(
                         icon: Icons.receipt_long,
-                        title: 'Purchase Receipt',
-                        subtitle: 'WDC Store',
+                        title: StoreI18n.text(MessageKeys.receiptTitle),
+                        subtitle: StoreI18n.text(MessageKeys.appName),
                       ),
                       const SizedBox(height: 20),
                       // Receipt body (gray bg)
@@ -79,7 +81,7 @@ class _ReceiptViewState extends BaseViewState<ReceiptView> {
                               child: Row(
                                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                 children: [
-                                  Text('Date:', style: monoSmall.copyWith(color: appTextSecondary)),
+                                  Text(StoreI18n.text(MessageKeys.receiptDate), style: monoSmall.copyWith(color: appTextSecondary)),
                                   Text(formatDateTime(dateMillis), style: monoBold),
                                 ],
                               ),
@@ -93,9 +95,9 @@ class _ReceiptViewState extends BaseViewState<ReceiptView> {
                               ),
                               child: Row(
                                 children: [
-                                  Expanded(child: Text('ITEM', style: monoSmall.copyWith(fontWeight: FontWeight.w700, color: appTextSecondary, letterSpacing: 0.5))),
-                                  SizedBox(width: 80, child: Text('QTY', textAlign: TextAlign.center, style: monoSmall.copyWith(fontWeight: FontWeight.w700, color: appTextSecondary, letterSpacing: 0.5))),
-                                  SizedBox(width: 100, child: Text('PRICE', textAlign: TextAlign.end, style: monoSmall.copyWith(fontWeight: FontWeight.w700, color: appTextSecondary, letterSpacing: 0.5))),
+                                  Expanded(child: Text(StoreI18n.text(MessageKeys.receiptItem), style: monoSmall.copyWith(fontWeight: FontWeight.w700, color: appTextSecondary, letterSpacing: 0.5))),
+                                  SizedBox(width: 80, child: Text(StoreI18n.text(MessageKeys.receiptQuantity), textAlign: TextAlign.center, style: monoSmall.copyWith(fontWeight: FontWeight.w700, color: appTextSecondary, letterSpacing: 0.5))),
+                                  SizedBox(width: 100, child: Text(StoreI18n.text(MessageKeys.receiptPrice), textAlign: TextAlign.end, style: monoSmall.copyWith(fontWeight: FontWeight.w700, color: appTextSecondary, letterSpacing: 0.5))),
                                 ],
                               ),
                             ),
@@ -128,7 +130,7 @@ class _ReceiptViewState extends BaseViewState<ReceiptView> {
                               child: Row(
                                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                 children: [
-                                  const Text('TOTAL:', style: TextStyle(fontFamily: 'Courier New', fontSize: 14, fontWeight: FontWeight.w700)),
+                                  Text(StoreI18n.text(MessageKeys.receiptTotal), style: const TextStyle(fontFamily: 'Courier New', fontSize: 14, fontWeight: FontWeight.w700)),
                                   Text(formatCurrency(total),
                                       style: const TextStyle(fontFamily: 'Courier New', fontSize: 16, fontWeight: FontWeight.w800, color: appAccent)),
                                 ],
@@ -144,7 +146,7 @@ class _ReceiptViewState extends BaseViewState<ReceiptView> {
                         child: TextButton.icon(
                           onPressed: _emitOpenProducts,
                           icon: const Icon(Icons.arrow_back, size: 18),
-                          label: const Text('Back to products'),
+                          label: Text(StoreI18n.text(MessageKeys.receiptBackToProducts)),
                         ),
                       ),
                     ],

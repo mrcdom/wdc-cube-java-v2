@@ -6,6 +6,7 @@ import { Button, ActionButton, Divider } from "@root/swc"
 import * as NumberUtils from "@root/utils/NumberUtils"
 import * as EndpointUtils from "@root/utils/EndpointUtils"
 import Sel from "./product-sel"
+import { type Message, t, tm } from "@root/utils/I18n"
 
 // :: Actions
 
@@ -33,7 +34,7 @@ const DefaultProduct: Product = {
 export type ProductScope = {
   product: Product
   quantity: number
-  errorMessage?: string
+  errorMessage?: Message
 }
 
 class ProductViewClass extends BaseViewClass<ViewProps, ProductScope> {
@@ -61,7 +62,7 @@ class ProductViewClass extends BaseViewClass<ViewProps, ProductScope> {
             <div className={Sel.priceCol}>
               <span className={Sel.priceBadge}>{NumberUtils.formatCurrency(product.price)}</span>
               <div className={Sel.qtyRow}>
-                <span className={Sel.qtyLabel}>Qty:</span>
+                <span className={Sel.qtyLabel}>{t("cart.quantity")}</span>
                 <ActionButton quiet size="s" onClick={this.emitDecrement}>
                   <i className="bi bi-dash"></i>
                 </ActionButton>
@@ -80,11 +81,11 @@ class ProductViewClass extends BaseViewClass<ViewProps, ProductScope> {
           <div className={Sel.actionsRow}>
             <ActionButton quiet onClick={this.emitGoHome}>
               <i className={clsx("bi bi-arrow-left", Sel.mr4)}></i>
-              Back
+              {t("product.back")}
             </ActionButton>
             <Button variant="accent" size="l" onClick={this.emitAddToCart}>
               <i className={clsx("bi bi-bag-plus", Sel.mr4)}></i>
-              Add to Cart
+              {t("product.addToCart")}
             </Button>
           </div>
 
@@ -94,7 +95,7 @@ class ProductViewClass extends BaseViewClass<ViewProps, ProductScope> {
               <span className={Sel.alertErrorIcon}>
                 <i className="bi bi-exclamation-circle"></i>
               </span>
-              <span className={Sel.alertErrorText}>{scope.errorMessage}</span>
+              <span className={Sel.alertErrorText}>{tm(scope.errorMessage)}</span>
             </div>
           )}
         </div>

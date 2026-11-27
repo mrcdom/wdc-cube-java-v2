@@ -1,0 +1,5 @@
+{
+  "cn1.connecting": "Connecting to server...",
+  "cn1.connectionLost": "Connection lost. Reconnecting...",
+  "cn1.renderError": "Error rendering the screen."
+}

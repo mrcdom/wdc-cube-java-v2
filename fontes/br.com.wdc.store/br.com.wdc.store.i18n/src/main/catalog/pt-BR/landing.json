@@ -1,0 +1,7 @@
+{
+  "landing.title": "WeDoCode — Frontends experimentais",
+  "landing.intro": "Esta página apresenta tecnologias de renderização voltadas ao navegador. São experimentos e provas de conceito que exploram abordagens diferentes para a camada de apresentação remota do framework Cube MVP.",
+  "landing.noContexts": "Nenhum contexto de frontend disponível.",
+  "landing.listError": "Erro ao listar os contextos de frontend.",
+  "landing.noDescription": "Sem descrição."
+}

@@ -43,11 +43,12 @@ public class ScopeCoordinator {
 
     /**
      * Browser View field, set by this client, that holds when the host refused the protocol version: the shell then
-     * tells the user the page is out of date ({@link #OUTDATED_MESSAGE}), and its OK reloads the page.
+     * tells the user the page is out of date — in its own words, or {@link #OUTDATED_MESSAGE} — and its OK reloads the
+     * page.
      */
     public static final String OUTDATED_FIELD = "error.outdated";
 
-    /** What the user is told when the host refused the protocol version. */
+    /** A default text for a shell to tell the user when the host refused the protocol version. */
     public static final String OUTDATED_MESSAGE = "This page is out of date. Reload it to continue.";
 
     /** localStorage key used to persist the last visited path for native shell restore. */

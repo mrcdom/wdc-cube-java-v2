@@ -34,7 +34,7 @@ br.com.wdc.store.view.swt/
 │   ├── ScrolledPage.java
 │   └── ErrorBanner.java
 ├── theme/
-│   ├── Theme.java                    # Color palette, fonts, spacing
+│   ├── Theme.java                    # Color palette, fonts, spacing (from the design tokens, StoreTokens)
 │   └── Surface.java                  # Enumeration of surfaces (background, card, ...)
 └── util/
     ├── SwtDom.java                   # Fluent DSL for creating widgets (`.row()`, `.col()`, ...)

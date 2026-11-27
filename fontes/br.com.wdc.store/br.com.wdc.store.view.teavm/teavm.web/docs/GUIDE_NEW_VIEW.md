@@ -27,7 +27,7 @@ public class WishlistScope extends Scope {
     public static final String CLASS_ID = "5f1e2d3c4b6a";
 
     public final Prop<List<WishlistItem>> items = prop();   // WishlistItem: public long id; public String name;
-    public final Prop<String> errorMessage = prop();
+    public final Prop<Message> errorMessage = prop();        // br.com.wdc.store.i18n.Message: a catalog key and its arguments
 
     public ActionOf<Long> onRemoveItem = ActionOf.noop();
     public Action onBack = Action.NOOP;
@@ -40,7 +40,7 @@ public class WishlistScope extends Scope {
 
 ### Step 1 — The shared view (teavm.commons)
 
-Create `WishlistSharedView` in `teavm.commons/src/main/java/br/com/wdc/store/view/teavm/commons/views/wishlist/`, with its `_wishlist.scss` partial next to it. The full example is in [remote.shell.teavm's guide](../../../br.com.wdc.store.view.remote/remote.shell.teavm/docs/GUIDE_NEW_VIEW.md#step-1--the-shared-view-teavmcommons); it exposes:
+Create `WishlistSharedView` in `teavm.commons/src/main/java/br/com/wdc/store/view/teavm/commons/views/wishlist/`, with its `_wishlist.scss` partial next to it. The full example is in [remote.shell.teavm's guide](../../../br.com.wdc.store.view.remote/remote.shell.teavm/docs/GUIDE_NEW_VIEW.md#step-1--the-shared-view-teavmcommons); its texts come from the catalog in the browser's language (`I18n.text(StoreMessages.XXX)`, `I18n.text(message)`; keys in every language of [`br.com.wdc.store.i18n`](../../../br.com.wdc.store.i18n/README.md)) and its colors from the design tokens (`t.$color-*` from `generated/tokens`; [`br.com.wdc.store.design`](../../../br.com.wdc.store.design/README.md)). It exposes:
 
 ```java
 public Supplier<WishlistScope> scopeSupplier;
@@ -150,7 +150,8 @@ Here the Java fields are read directly:
 
 ```java
 var items = this.scope.items.get();            // List<WishlistItem>
-var errorMsg = this.scope.errorMessage.get();  // String
+var errorMsg = this.scope.errorMessage.get();  // Message (key + args), or null
+var errorText = I18n.text(errorMsg);           // its text in the browser's language; empty for none
 ```
 
 The presentation layer structs (`ProductInfo`, `PurchaseInfo`, etc.) have public fields — no getters:
@@ -180,5 +181,6 @@ The same guide has the `Sel` pattern (`SelUtility`/`SelComponents`/`SelIcons`) a
 - [ ] View extends `AbstractVDomView<XxxScope>`, constructor `(StoreTeaVMApplication app, XxxScope scope)` calls `super(instanceId, app, scope)`
 - [ ] Shared view bound: `scopeSupplier = () -> scope`, each callback wrapped in `safeAction()`
 - [ ] View registered in the catalog: `.register(XxxScope.class, XxxView::new)` in the `SCOPE_VIEWS` of `StoreTeaVMApplication`
+- [ ] Texts from the catalog (keys in every language), colors from the design tokens
 - [ ] `_x.scss` partial added to `src/main/scss/app.scss`
 - [ ] `./work/bin/build-frontends.sh teavm.web` builds without errors

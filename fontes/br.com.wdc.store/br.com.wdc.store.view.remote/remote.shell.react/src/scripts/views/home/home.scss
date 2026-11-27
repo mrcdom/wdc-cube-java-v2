@@ -1,6 +1,8 @@
 // Styles of the home module — navbar, tabs, products grid, purchases panel.
 // Imported by home-sel.ts; do not reference this file directly from the views.
 
+@use "../../../scss/generated/tokens" as *;
+
 // --- Navbar ------------------------------------------------------------------
 
 .wdc-navbar {
@@ -8,9 +10,9 @@
   align-items: center;
   justify-content: space-between;
   padding: 10px 16px;
-  background: linear-gradient(135deg, #0d66d0 0%, #1a8cff 100%);
+  background: linear-gradient(135deg, $color-primary 0%, $color-accent 100%);
   flex-shrink: 0;
-  box-shadow: 0 2px 8px rgba(13, 102, 208, 0.3);
+  box-shadow: 0 2px 8px rgba($color-primary, 0.3);
 
   &__group {
     display: flex;
@@ -107,7 +109,7 @@
   }
 
   &__card-image-wrap {
-    background: linear-gradient(180deg, #f8fafc 0%, #eef2f7 100%);
+    background: linear-gradient(180deg, $color-surface-muted 0%, $color-surface-subtle 100%);
     padding: 20px;
     display: flex;
     align-items: center;

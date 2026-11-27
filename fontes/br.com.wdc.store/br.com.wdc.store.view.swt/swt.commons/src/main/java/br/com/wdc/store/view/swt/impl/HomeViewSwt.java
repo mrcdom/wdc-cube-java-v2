@@ -15,11 +15,13 @@ import org.eclipse.swt.widgets.Canvas;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
 
+import br.com.wdc.store.i18n.StoreMessages;
 import br.com.wdc.store.presentation.presenter.restricted.home.HomeScope;
 import br.com.wdc.store.view.swt.AbstractViewSwt;
 import br.com.wdc.store.view.swt.SwtApp;
 import br.com.wdc.store.view.swt.theme.Surface;
 import br.com.wdc.store.view.swt.theme.Theme;
+import br.com.wdc.store.view.swt.util.I18n;
 import br.com.wdc.store.view.swt.util.SlotComposite;
 import br.com.wdc.store.view.swt.util.StackComposite;
 import br.com.wdc.store.view.swt.util.SwtDom;
@@ -65,7 +67,7 @@ public class HomeViewSwt extends AbstractViewSwt {
         var scope = this.scopeSupplier != null ? this.scopeSupplier.get() : null;
 
         // Welcome
-        String prefix = "Welcome,";
+        String prefix = I18n.text(StoreMessages.HOME_WELCOME);
         if (!Objects.equals(this.welcomeLabel.getText(), prefix)) {
             this.welcomeLabel.setText(prefix);
         }
@@ -88,7 +90,7 @@ public class HomeViewSwt extends AbstractViewSwt {
         var newErrorMessage = "";
         if (scope != null && scope.errorCode.get() != 0) {
             newErrorDisplay = true;
-            newErrorMessage = scope.errorMessage.get();
+            newErrorMessage = I18n.text(scope.errorMessage.get());
             // Consumed while drawing: a redraw now would take the message away
             scope.errorCode.setSilently(0);
             scope.errorMessage.setSilently(null);
@@ -253,7 +255,7 @@ public class HomeViewSwt extends AbstractViewSwt {
 
                 dom.label(lbl -> {
                     lbl.setFont(Theme.FONT_NAV_TITLE);
-                    lbl.setText("Store");
+                    lbl.setText(I18n.text(StoreMessages.APP_STORE));
                     lbl.setForeground(Theme.FG_TEXT_WHITE);
                     lbl.setBackground(null);
                     lbl.setLayoutData(new GridData(SWT.LEFT, SWT.BOTTOM, false, false));
@@ -261,7 +263,7 @@ public class HomeViewSwt extends AbstractViewSwt {
 
                 dom.label(lbl -> {
                     lbl.setFont(Theme.FONT_NAV_SMALL);
-                    lbl.setText("By WeDoCode");
+                    lbl.setText(I18n.text(StoreMessages.APP_BY_WEDOCODE));
                     lbl.setForeground(Theme.FG_TEXT_WHITE_65);
                     lbl.setBackground(null);
                     lbl.setLayoutData(new GridData(SWT.LEFT, SWT.TOP, false, false));
@@ -298,7 +300,7 @@ public class HomeViewSwt extends AbstractViewSwt {
 
                 var cartLabel = dom.label(lbl -> {
                     lbl.setFont(Theme.FONT_BODY);
-                    lbl.setText("Cart");
+                    lbl.setText(I18n.text(StoreMessages.CART_TITLE));
                     lbl.setForeground(Theme.FG_TEXT_WHITE);
                     lbl.setBackground(null);
                     var cartLabelGd = new GridData();

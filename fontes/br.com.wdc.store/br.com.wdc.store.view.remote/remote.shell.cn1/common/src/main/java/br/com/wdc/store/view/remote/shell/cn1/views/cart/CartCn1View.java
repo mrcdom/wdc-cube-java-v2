@@ -15,6 +15,8 @@ import com.codename1.ui.plaf.RoundBorder;
 import br.com.wdc.store.view.remote.shell.cn1.StoreCn1RemoteApp;
 import br.com.wdc.store.view.remote.shell.cn1.bridge.AbstractCn1View;
 import br.com.wdc.store.view.remote.shell.cn1.bridge.BridgeSession;
+import br.com.wdc.store.view.remote.shell.cn1.i18n.StoreMessages;
+import br.com.wdc.store.view.remote.shell.cn1.i18n.Texts;
 import br.com.wdc.store.view.remote.shell.cn1.theme.Colors;
 import br.com.wdc.store.view.remote.shell.cn1.util.Cn1Dom;
 import br.com.wdc.store.view.remote.shell.cn1.util.Guard;
@@ -60,8 +62,8 @@ public class CartCn1View extends AbstractCn1View {
                 
                 dom.cardHeader(null, h -> {
                     h.setIcon(FontImage.MATERIAL_SHOPPING_BAG);
-                    h.setTitle("Cart");
-                    h.setSubtitle("Your selected products");
+                    h.setTitle(Texts.text(StoreMessages.CART_TITLE));
+                    h.setSubtitle(Texts.text(StoreMessages.CART_SUBTITLE));
                 });
 
                 body = dom.slot();
@@ -85,16 +87,16 @@ public class CartCn1View extends AbstractCn1View {
             });
             dom.label(l -> {
                 l.setUIID(sel.CART_EMPTY_TITLE);
-                l.setText("Your cart is empty");
+                l.setText(Texts.text(StoreMessages.CART_EMPTY));
             });
             dom.label(l -> {
                 l.setUIID(sel.CART_EMPTY_SUB);
-                l.setText("Add products to get started");
+                l.setText(Texts.text(StoreMessages.CART_EMPTY_HINT));
             });
             dom.container(new FlowLayout(Component.CENTER, Component.CENTER), null, wrap -> {
                 dom.button(b -> {
                     b.setUIID(sel.PRIMARY_BUTTON);
-                    b.setText("View products");
+                    b.setText(Texts.text(StoreMessages.CART_VIEW_PRODUCTS));
                     b.addActionListener(e -> submit(EVT_BACK));
                     FontImage.setMaterialIcon(b, FontImage.MATERIAL_VIEW_MODULE, 3.5f);
                 });
@@ -109,7 +111,7 @@ public class CartCn1View extends AbstractCn1View {
                 footer.setUIID(sel.CART_FOOTER);
                 dom.label(l -> {
                     l.setUIID(sel.CART_FOOTER_LABEL);
-                    l.setText("Total:");
+                    l.setText(Texts.text(StoreMessages.CART_TOTAL));
                 });
                 dom.label(l -> {
                     l.setUIID(sel.CART_FOOTER_TOTAL);
@@ -120,10 +122,10 @@ public class CartCn1View extends AbstractCn1View {
             // the text; when expanded they sit side by side. Same pattern as ProductCn1View's actions.
             dom.container(new FlowLayout(Component.CENTER, Component.CENTER), null, actions -> {
                 actions.setUIID(sel.CART_ACTIONS);
-                dom.add(new BackButton("Continue shopping", () -> submit(EVT_BACK)), null);
+                dom.add(new BackButton(Texts.text(StoreMessages.CART_CONTINUE_SHOPPING), () -> submit(EVT_BACK)), null);
                 dom.button(b -> {
                     b.setUIID(sel.PRIMARY_BUTTON);
-                    b.setText("Checkout");
+                    b.setText(Texts.text(StoreMessages.CART_CHECKOUT));
                     b.addActionListener(e -> submit(EVT_BUY));
                     FontImage.setMaterialIcon(b, FontImage.MATERIAL_CHECK_CIRCLE, 3.5f);
                 });
@@ -133,6 +135,7 @@ public class CartCn1View extends AbstractCn1View {
 
     @Override
     public void doUpdate() {
+        showError(); // the presenter's error, if any, as a toast
         // The rows are views of their own (CartItemCn1View), referenced by id in cart order
         List<Object> rowIds = Json.asList(scope().get("rowsViewIds"));
         boolean empty = rowIds.isEmpty();

@@ -1,10 +1,5 @@
 package br.com.wdc.store.view.vaadin.impl.home;
 
-import java.text.NumberFormat;
-import java.time.Instant;
-import java.time.ZoneId;
-import java.time.format.DateTimeFormatter;
-import java.util.Locale;
 import java.util.Objects;
 
 import com.vaadin.flow.component.html.Span;
@@ -14,11 +9,11 @@ import br.com.wdc.store.presentation.presenter.restricted.home.HomeScope.Purchas
 import br.com.wdc.store.presentation.presenter.restricted.home.structs.PurchaseInfo;
 import br.com.wdc.store.view.vaadin.AbstractViewVaadin;
 import br.com.wdc.store.view.vaadin.StoreVaadinApplication;
+import br.com.wdc.store.view.vaadin.util.I18n;
 import br.com.wdc.store.view.vaadin.util.VaadinDom;
 
 public class PurchaseItemViewVaadin extends AbstractViewVaadin<PurchasesPanelScope> {
 
-    private static final DateTimeFormatter DATE_FORMAT = DateTimeFormatter.ofPattern("MM/dd/yyyy", Locale.US);
 
     private PurchaseInfo item;
 
@@ -67,7 +62,7 @@ public class PurchaseItemViewVaadin extends AbstractViewVaadin<PurchasesPanelSco
         }
 
         if (this.totalOldValue != this.item.total) {
-            this.totalElm.setText(NumberFormat.getCurrencyInstance(Locale.US).format(this.item.total));
+            this.totalElm.setText(I18n.price(this.item.total));
             this.totalOldValue = this.item.total;
         }
     }
@@ -120,7 +115,7 @@ public class PurchaseItemViewVaadin extends AbstractViewVaadin<PurchasesPanelSco
             });
             dom.span(label -> {
                 this.totalElm = label;
-                this.totalElm.setText(NumberFormat.getCurrencyInstance(Locale.US).format(this.item.total));
+                this.totalElm.setText(I18n.price(this.item.total));
                 this.totalElm.getStyle().set("font-weight", "bold").set("white-space", "nowrap").set("color", "var(--lumo-body-text-color)");
                 this.totalOldValue = this.item.total;
             });
@@ -128,8 +123,7 @@ public class PurchaseItemViewVaadin extends AbstractViewVaadin<PurchasesPanelSco
     }
 
     private String getDateStr() {
-        var date = Instant.ofEpochMilli(this.item.date).atZone(ZoneId.systemDefault()).toLocalDate();
-        return DATE_FORMAT.format(date);
+        return this.app.i18n().date(this.item.date);
     }
 
     private String getItemsStr() {

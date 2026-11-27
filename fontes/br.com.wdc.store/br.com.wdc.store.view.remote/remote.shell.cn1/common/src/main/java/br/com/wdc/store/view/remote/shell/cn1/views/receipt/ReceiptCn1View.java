@@ -16,6 +16,8 @@ import com.codename1.ui.layouts.FlowLayout;
 import br.com.wdc.store.view.remote.shell.cn1.StoreCn1RemoteApp;
 import br.com.wdc.store.view.remote.shell.cn1.bridge.AbstractCn1View;
 import br.com.wdc.store.view.remote.shell.cn1.bridge.BridgeSession;
+import br.com.wdc.store.view.remote.shell.cn1.i18n.StoreMessages;
+import br.com.wdc.store.view.remote.shell.cn1.i18n.Texts;
 import br.com.wdc.store.view.remote.shell.cn1.theme.Fonts;
 import br.com.wdc.store.view.remote.shell.cn1.util.Cn1Dom;
 import br.com.wdc.store.view.remote.shell.cn1.util.Dates;
@@ -69,7 +71,7 @@ public class ReceiptCn1View extends AbstractCn1View {
                 });
                 dom.label(l -> {
                     l.setUIID(sel.ALERT_SUCCESS_TEXT);
-                    l.setText("Purchase completed successfully!");
+                    l.setText(Texts.text(StoreMessages.RECEIPT_COMPLETED));
                 });
                 
                 successAlert = alert;
@@ -81,8 +83,8 @@ public class ReceiptCn1View extends AbstractCn1View {
 
                 dom.cardHeader(null, h -> {
                     h.setIcon(FontImage.MATERIAL_RECEIPT);
-                    h.setTitle("Purchase Receipt");
-                    h.setSubtitle("WDC Store");
+                    h.setTitle(Texts.text(StoreMessages.RECEIPT_TITLE));
+                    h.setSubtitle(Texts.text(StoreMessages.APP_NAME));
                 });
 
                 // body (monospaced)
@@ -94,7 +96,7 @@ public class ReceiptCn1View extends AbstractCn1View {
                         dateRow.setUIID(sel.RECEIPT_DATE_ROW);
                         dom.label(BorderLayout.WEST, l -> {
                             l.setUIID(sel.RECEIPT_DATE_LABEL);
-                            l.setText("Date:");
+                            l.setText(Texts.text(StoreMessages.RECEIPT_DATE));
                             l.getAllStyles().setFont(Fonts.MONO);    
                         });
                         dom.label(BorderLayout.EAST, l -> {
@@ -109,14 +111,14 @@ public class ReceiptCn1View extends AbstractCn1View {
                         th.setUIID(sel.RECEIPT_TABLE_HEADER);
                         dom.label(BorderLayout.CENTER, l -> {
                             l.setUIID(sel.RECEIPT_COL_HEAD);
-                            l.setText("ITEM");
+                            l.setText(Texts.text(StoreMessages.RECEIPT_ITEM));
                             l.getAllStyles().setFont(Fonts.MONO);
                             l.setEndsWith3Points(true);
                         });
                         dom.boxX(BorderLayout.EAST, cols -> {
                             dom.label(l -> {
                                 l.setUIID(sel.RECEIPT_COL_HEAD_QTY);
-                                l.setText("QTY");
+                                l.setText(Texts.text(StoreMessages.RECEIPT_QUANTITY));
                                 l.setPreferredW(Px.mm(COL_QTY_W_MM));
                                 l.getAllStyles().setFont(Fonts.MONO);    
                             });                            
@@ -124,7 +126,7 @@ public class ReceiptCn1View extends AbstractCn1View {
                                 l.setUIID(sel.RECEIPT_COL_HEAD_VALUE);
                                 l.setPreferredW(Px.mm(COL_VALUE_W_MM));
                                 l.getAllStyles().setFont(Fonts.MONO);
-                                l.setText("PRICE");
+                                l.setText(Texts.text(StoreMessages.RECEIPT_PRICE));
                             });
                         });
                     });
@@ -136,7 +138,7 @@ public class ReceiptCn1View extends AbstractCn1View {
                     dom.border(totalRow -> {
                         totalRow.setUIID(sel.RECEIPT_TOTAL_ROW);
                         Label lbl = dom.label(BorderLayout.WEST, l -> l.setUIID(sel.RECEIPT_TOTAL_LABEL));
-                        lbl.setText("TOTAL:");
+                        lbl.setText(Texts.text(StoreMessages.RECEIPT_TOTAL));
                         lbl.getAllStyles().setFont(Fonts.MONO);
                         dom.label(BorderLayout.EAST, l -> {
                             l.setUIID(sel.RECEIPT_TOTAL_VALUE);
@@ -148,7 +150,7 @@ public class ReceiptCn1View extends AbstractCn1View {
 
                 // back
                 dom.container(new FlowLayout(Component.LEFT, Component.CENTER), null, actions -> {
-                    dom.add(new BackButton("Back to products", () -> submit(EVT_BACK)), null);
+                    dom.add(new BackButton(Texts.text(StoreMessages.RECEIPT_BACK_TO_PRODUCTS), () -> submit(EVT_BACK)), null);
                 });
             });
         });

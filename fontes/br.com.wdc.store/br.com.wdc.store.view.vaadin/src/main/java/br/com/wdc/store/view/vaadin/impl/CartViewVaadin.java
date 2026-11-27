@@ -1,9 +1,7 @@
 package br.com.wdc.store.view.vaadin.impl;
 
-import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.Button;
@@ -17,10 +15,12 @@ import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 
+import br.com.wdc.store.i18n.StoreMessages;
 import br.com.wdc.store.presentation.presenter.restricted.cart.CartScope;
 import br.com.wdc.store.presentation.presenter.restricted.cart.CartScope.CartItemScope;
 import br.com.wdc.store.view.vaadin.AbstractViewVaadin;
 import br.com.wdc.store.view.vaadin.StoreVaadinApplication;
+import br.com.wdc.store.view.vaadin.util.I18n;
 import br.com.wdc.store.view.vaadin.util.VaadinDom;
 
 public class CartViewVaadin extends AbstractViewVaadin<CartScope> {
@@ -33,6 +33,7 @@ public class CartViewVaadin extends AbstractViewVaadin<CartScope> {
     private Div emptyCartPane;
     private HorizontalLayout footerPane;
     private HorizontalLayout actionsPane;
+    private Button checkoutButton;
 
     public CartViewVaadin(StoreVaadinApplication app, CartScope scope) {
         super("cart", app, scope, new VerticalLayout());
@@ -49,6 +50,7 @@ public class CartViewVaadin extends AbstractViewVaadin<CartScope> {
         this.emptyCartPane = null;
         this.footerPane = null;
         this.actionsPane = null;
+        this.checkoutButton = null;
     }
 
     @Override
@@ -67,10 +69,10 @@ public class CartViewVaadin extends AbstractViewVaadin<CartScope> {
         this.rowsPane.setVisible(!empty);
         this.footerPane.setVisible(!empty);
         if (this.actionsPane != null) {
-            // Show only "Back to products" in actions when empty
+            // Show only the way back to the products in actions when empty
             this.actionsPane.getChildren().forEach(c -> {
-                if (c instanceof Button btn && "CHECKOUT".equals(btn.getText())) {
-                    btn.setVisible(!empty);
+                if (c == this.checkoutButton) {
+                    c.setVisible(!empty);
                 }
             });
         }
@@ -82,7 +84,7 @@ public class CartViewVaadin extends AbstractViewVaadin<CartScope> {
         }
 
         if (this.scope.errorCode.get() != 0) {
-            Notification.show(this.scope.errorMessage.get(), 5000, Notification.Position.TOP_CENTER)
+            Notification.show(text(this.scope.errorMessage.get()), 5000, Notification.Position.TOP_CENTER)
                     .addThemeVariants(NotificationVariant.LUMO_ERROR);
             // Consumed while drawing: a redraw now would take the message away
             this.scope.errorCode.setSilently(0);
@@ -105,13 +107,13 @@ public class CartViewVaadin extends AbstractViewVaadin<CartScope> {
             });
 
             dom.h3(h -> {
-                h.setText("Cart");
+                h.setText(text(StoreMessages.CART_TITLE));
                 h.getStyle().set("margin", "0 0 0 8px");
             });
         });
 
         dom.h4(h -> {
-            h.setText("PRODUCT LIST");
+            h.setText(text(StoreMessages.VAADIN_PRODUCT_LIST));
             h.getStyle().set("color", "var(--lumo-secondary-text-color)");
         });
 
@@ -146,11 +148,11 @@ public class CartViewVaadin extends AbstractViewVaadin<CartScope> {
         var emptyCartIcon = new Div();
         emptyCartIcon.addClassName("cart-empty-icon");
         this.emptyCartPane.add(emptyCartIcon);
-        var emptyText = new Span("Your cart is empty");
+        var emptyText = new Span(text(StoreMessages.CART_EMPTY));
         emptyText.getStyle().set("display", "block").set("color", "var(--lumo-secondary-text-color)")
                 .set("font-size", "1.1rem").set("margin-top", "var(--lumo-space-m)");
         this.emptyCartPane.add(emptyText);
-        var goShoppingBtn = new Button("Let's go shopping!",
+        var goShoppingBtn = new Button(text(StoreMessages.VAADIN_GO_SHOPPING),
                 e -> safeAction("Open products", this.scope.onOpenProducts::run));
         goShoppingBtn.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
         goShoppingBtn.getStyle().set("font-weight", "bold").set("font-size", "1rem").set("margin-top",
@@ -167,7 +169,7 @@ public class CartViewVaadin extends AbstractViewVaadin<CartScope> {
             footer.getStyle().set("padding", "12px 0");
 
             dom.span(label -> {
-                label.setText("TOTAL: ");
+                label.setText(text(StoreMessages.CART_TOTAL) + " ");
                 label.getStyle().set("font-weight", "bold");
             });
 
@@ -189,7 +191,7 @@ public class CartViewVaadin extends AbstractViewVaadin<CartScope> {
             actions.setJustifyContentMode(FlexComponent.JustifyContentMode.BETWEEN);
 
             dom.button(button -> {
-                button.setText("Back to products");
+                button.setText(text(StoreMessages.RECEIPT_BACK_TO_PRODUCTS));
                 button.setIcon(VaadinIcon.ARROW_LEFT.create());
                 button.addThemeVariants(ButtonVariant.LUMO_TERTIARY, ButtonVariant.LUMO_SMALL);
                 button.addClassName("back-button");
@@ -197,7 +199,8 @@ public class CartViewVaadin extends AbstractViewVaadin<CartScope> {
             });
 
             dom.button(button -> {
-                button.setText("CHECKOUT");
+                this.checkoutButton = button;
+                button.setText(text(StoreMessages.CART_CHECKOUT));
                 button.setIcon(VaadinIcon.CHECK.create());
                 button.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
                 button.getStyle().set("background-color", "var(--lumo-success-color)");
@@ -222,6 +225,6 @@ public class CartViewVaadin extends AbstractViewVaadin<CartScope> {
     }
 
     private String formatCurrency(double value) {
-        return NumberFormat.getCurrencyInstance(Locale.US).format(value);
+        return I18n.price(value);
     }
 }

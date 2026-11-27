@@ -10,6 +10,7 @@ import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 
+import br.com.wdc.store.i18n.StoreMessages;
 import br.com.wdc.store.presentation.presenter.restricted.home.HomeScope.PurchasesPanelScope;
 import br.com.wdc.store.presentation.presenter.restricted.home.structs.PurchaseInfo;
 import br.com.wdc.store.view.vaadin.AbstractViewVaadin;
@@ -68,7 +69,7 @@ public class PurchasesPanelViewVaadin extends AbstractViewVaadin<PurchasesPanelS
 
         dom.h4(h -> {
             h.addClassName("title");
-            h.setText("Your purchase history");
+            h.setText(text(StoreMessages.HOME_HISTORY));
             h.getStyle().set("margin", "0 0 12px 0");
         });
 
@@ -94,8 +95,8 @@ public class PurchasesPanelViewVaadin extends AbstractViewVaadin<PurchasesPanelS
                 this.prevButton = btn;
                 btn.setIcon(VaadinIcon.ANGLE_LEFT.create());
                 btn.addThemeVariants(ButtonVariant.LUMO_SMALL, ButtonVariant.LUMO_TERTIARY, ButtonVariant.LUMO_ICON);
-                btn.getStyle().set("color", "#1976d2");
-                btn.getElement().setAttribute("aria-label", "Previous page");
+                btn.getStyle().set("color", "var(--store-color-primary)");
+                btn.getElement().setAttribute("aria-label", text(StoreMessages.VAADIN_PREVIOUS_PAGE));
                 btn.addClickListener(
                         e -> safeAction("Previous page", () -> this.scope.onPageChange.run(this.scope.page.get() - 1)));
             });
@@ -109,8 +110,8 @@ public class PurchasesPanelViewVaadin extends AbstractViewVaadin<PurchasesPanelS
                 this.nextButton = btn;
                 btn.setIcon(VaadinIcon.ANGLE_RIGHT.create());
                 btn.addThemeVariants(ButtonVariant.LUMO_SMALL, ButtonVariant.LUMO_TERTIARY, ButtonVariant.LUMO_ICON);
-                btn.getStyle().set("color", "#1976d2");
-                btn.getElement().setAttribute("aria-label", "Next page");
+                btn.getStyle().set("color", "var(--store-color-primary)");
+                btn.getElement().setAttribute("aria-label", text(StoreMessages.VAADIN_NEXT_PAGE));
                 btn.addClickListener(
                         e -> safeAction("Next page", () -> this.scope.onPageChange.run(this.scope.page.get() + 1)));
             });

@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.IdentityHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
@@ -14,6 +15,7 @@ import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.server.VaadinRequest;
 import com.vaadin.flow.server.VaadinService;
+import com.vaadin.flow.server.VaadinSession;
 
 import br.com.wdc.framework.commons.log.Log;
 import br.com.wdc.framework.commons.storage.ClientStorage;
@@ -36,6 +38,7 @@ import br.com.wdc.store.view.vaadin.impl.PurchasesPanelViewVaadin;
 import br.com.wdc.store.view.vaadin.impl.ReceiptViewVaadin;
 import br.com.wdc.store.view.vaadin.impl.RootViewVaadin;
 import br.com.wdc.store.view.vaadin.impl.cart.CartItemViewVaadin;
+import br.com.wdc.store.view.vaadin.util.I18n;
 import br.com.wdc.store.view.vaadin.util.IntentSigner;
 
 public class StoreVaadinApplication extends StoreApplication {
@@ -65,6 +68,7 @@ public class StoreVaadinApplication extends StoreApplication {
     private final AtomicBoolean navigatingFromBrowser = new AtomicBoolean(false);
     private final IntentSigner intentSigner = new IntentSigner();
     private String lastSignature;
+    private final I18n i18n;
 
     @Override
     protected Map<Integer, CubePresenter> createPresenterMap() {
@@ -78,6 +82,27 @@ public class StoreVaadinApplication extends StoreApplication {
 
     public StoreVaadinApplication(UI ui) {
         this.ui = ui;
+        this.i18n = new I18n(localeOf(ui));
+    }
+
+    /**
+     * The browser's locale, from its {@code Accept-Language}. Without an {@code I18NProvider}, Vaadin's UI and session
+     * locales are the server's default, not the browser's: they are the fallback only.
+     */
+    private static Locale localeOf(UI ui) {
+        var session = VaadinSession.getCurrent();
+        if (session != null && session.getBrowser() != null && session.getBrowser().getLocale() != null) {
+            return session.getBrowser().getLocale();
+        }
+        if (ui != null && ui.getLocale() != null) {
+            return ui.getLocale();
+        }
+        return session != null ? session.getLocale() : null;
+    }
+
+    /** The texts and formats of this user's language, picked from the browser once. */
+    public I18n i18n() {
+        return this.i18n;
     }
 
     public static StoreVaadinApplication restoreFromCache(String signedHash) {

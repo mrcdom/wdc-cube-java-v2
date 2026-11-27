@@ -2,6 +2,7 @@ package br.com.wdc.store.view.remote.shell.teavm;
 
 import br.com.wdc.framework.cube.remote.bridge.teavm.EncryptedLocalStorage;
 import br.com.wdc.framework.cube.remote.bridge.teavm.ScopeCoordinator;
+import br.com.wdc.store.view.teavm.commons.I18n;
 import br.com.wdc.store.view.teavm.commons.interop.Console;
 import br.com.wdc.store.view.remote.shell.teavm.views.RootView;
 import br.com.wdc.store.view.remote.shell.teavm.views.browser.BrowserView;
@@ -23,6 +24,9 @@ public class Main {
     public static void main(String[] args) {
         try {
             Console.log("WDC Store Remote Shell TeaVM - Initializing...");
+
+            // The language of the texts, picked once from the browser's
+            I18n.init();
 
             // Configure sync namespace — must be before ScopeCoordinator.INSTANCE is used
             ScopeCoordinator.configure("~rt:");

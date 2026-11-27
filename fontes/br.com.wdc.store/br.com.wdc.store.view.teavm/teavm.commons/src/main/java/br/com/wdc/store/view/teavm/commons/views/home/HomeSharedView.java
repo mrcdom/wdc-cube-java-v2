@@ -15,6 +15,9 @@ import org.teavm.jso.dom.events.Event;
 import org.teavm.jso.dom.events.EventListener;
 import org.teavm.jso.dom.html.HTMLElement;
 
+import br.com.wdc.store.i18n.Message;
+import br.com.wdc.store.i18n.StoreMessages;
+import br.com.wdc.store.view.teavm.commons.I18n;
 import br.com.wdc.store.view.teavm.commons.SelComponents;
 import br.com.wdc.store.view.teavm.commons.SelIcons;
 import br.com.wdc.store.view.teavm.commons.SelUtility;
@@ -77,7 +80,7 @@ public class HomeSharedView extends SharedVDomView {
     public static class HomeViewData {
         public String nickName = "";
         public String cartCount = "0";
-        public String errorMessage;
+        public Message errorMessage;
         public HTMLElement productsPanelEl;
         public HTMLElement purchasesPanelEl;
         public HTMLElement contentViewEl;
@@ -110,15 +113,15 @@ public class HomeSharedView extends SharedVDomView {
     @Override
     public VNode render() {
         var data = scopeSupplier.get();
-        var errorMessage = data.errorMessage;
-        boolean showError = errorMessage != null && !errorMessage.isEmpty();
+        var errorMessage = I18n.text(data.errorMessage);
+        boolean showError = !errorMessage.isEmpty();
 
         // @formatter:off
         return div(Sel.ROOT).children(
           renderNavbar(data.nickName, data.cartCount),
           div(showError ? Sel.ERROR_VISIBLE : Sel.HIDDEN).children(
             span(Sel.ERROR_ICON),
-            span(Sel.ERROR_TEXT).text(errorMessage != null ? errorMessage : "")),
+            span(Sel.ERROR_TEXT).text(errorMessage)),
           renderContentPane(data.productsPanelEl, data.purchasesPanelEl, data.contentViewEl));
         // @formatter:on
     }
@@ -132,22 +135,22 @@ public class HomeSharedView extends SharedVDomView {
               .children(span(Sel.EXIT_ICON))
               .on("click", exitListener),
             div(Sel.GREETING_WRAP).children(
-              span(Sel.GREETING_LABEL).text("Welcome,"),
+              span(Sel.GREETING_LABEL).text(I18n.text(StoreMessages.HOME_WELCOME)),
               span(Sel.GREETING_NAME).text(nickName))),
           // Center: logo
           div(Sel.NAV_GROUP).children(
             div(Sel.LOGO_BOX)
               .children(span(Sel.LOGO_ICON)),
             div(Sel.LOGO_TEXT_WRAP).children(
-              span(Sel.LOGO_TITLE).text("Store"),
-              span(Sel.LOGO_SUBTITLE).text("By WeDoCode"))),
+              span(Sel.LOGO_TITLE).text(I18n.text(StoreMessages.APP_STORE)),
+              span(Sel.LOGO_SUBTITLE).text(I18n.text(StoreMessages.APP_BY_WEDOCODE)))),
           // Right: cart button
           div(Sel.NAV_RIGHT).children(
             spActionButton().cls(Sel.CART_BTN)
               .on("click", openCartListener)
               .children(
                 span(Sel.CART_ICON),
-                span(Sel.CART_LABEL).text("Cart"),
+                span(Sel.CART_LABEL).text(I18n.text(StoreMessages.CART_TITLE)),
                 span(Sel.CART_BADGE).text(cartCount))));
         // @formatter:on
     }
@@ -177,13 +180,13 @@ public class HomeSharedView extends SharedVDomView {
             .on("click", tabProductsListener)
             .children(
               span(Sel.TAB_ICON_PRODUCTS),
-              span().text("Products"),
+              span().text(I18n.text(StoreMessages.HOME_PRODUCTS)),
               this.showingProducts ? span(Sel.TAB_INDICATOR) : span(Sel.HIDDEN)),
           button(this.showingProducts ? Sel.TAB_INACTIVE : Sel.TAB_ACTIVE)
             .on("click", tabHistoryListener)
             .children(
               span(Sel.TAB_ICON_HISTORY),
-              span().text("History"),
+              span().text(I18n.text(StoreMessages.HOME_HISTORY)),
               !this.showingProducts ? span(Sel.TAB_INDICATOR) : span(Sel.HIDDEN)));
         // @formatter:on
     }

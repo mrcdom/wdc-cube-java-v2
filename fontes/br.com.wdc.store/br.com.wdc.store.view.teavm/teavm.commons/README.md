@@ -21,7 +21,8 @@ br.com.wdc.store.view.teavm.commons/
 ├── SelComponents.java                 # Catalog of component classes (cards, alerts, empty states)
 ├── SelIcons.java                      # Catalog of Bootstrap Icons classes
 ├── StyleBuilder.java                  # Fluent builder for inline CSS style strings
-├── DateUtils.java                     # Date formatting (en-US) in the browser's time zone
+├── I18n.java                          # Texts of the catalog in the browser's language (navigator.language), USD prices
+├── DateUtils.java                     # Dates with the language's format.date / format.dateTime, in the browser's time zone
 ├── devtools/
 │   └── DevWatcher.java                # File watcher used by the watch.sh scripts (-Pwatch)
 ├── interop/                           # JSO bridges for browser APIs
@@ -40,7 +41,7 @@ br.com.wdc.store.view.teavm.commons/
     └── receipt/                       # ReceiptSharedView, _receipt.scss
 ```
 
-Global styles live in `src/main/scss/` (`_utilities.scss`, `_components.scss`, `_swc.scss`). Each frontend's `app.scss` `@use`s them and the views' partials (both folders are on its Sass load path) and compiles everything into its own `css/app.css`.
+Global styles live in `src/main/scss/` (`_utilities.scss`, `_components.scss`, `_swc.scss`). Each frontend's `app.scss` `@use`s them and the views' partials (both folders are on its Sass load path) and compiles everything into its own `css/app.css`. Colors, radii and the font family come from the design tokens, `src/main/scss/generated/_tokens.scss` (generated from `br.com.wdc.store.design`; `@use "generated/tokens" as t;`): the `:root --app-*` variables of each `app.scss` take their values from it.
 
 The remote protocol (`ScopeCoordinator`, `ViewScope`, WebSocket, security) lives in the framework module `remote.bridge.teavm`, used only by `remote.shell.teavm`.
 

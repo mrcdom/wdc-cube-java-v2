@@ -18,11 +18,13 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
 
+import br.com.wdc.store.i18n.StoreMessages;
 import br.com.wdc.store.presentation.presenter.open.login.LoginScope;
 import br.com.wdc.store.view.swt.AbstractViewSwt;
 import br.com.wdc.store.view.swt.SwtApp;
 import br.com.wdc.store.view.swt.theme.Surface;
 import br.com.wdc.store.view.swt.theme.Theme;
+import br.com.wdc.store.view.swt.util.I18n;
 import br.com.wdc.store.view.swt.util.SwtDom;
 
 /**
@@ -69,7 +71,7 @@ public class LoginViewSwt extends AbstractViewSwt {
         var newErrorMessage = "";
         if (s != null && s.errorCode.get() != 0) {
             newErrorDisplay = true;
-            newErrorMessage = s.errorMessage.get();
+            newErrorMessage = I18n.text(s.errorMessage.get());
             // Consumed while drawing: a redraw now would take the message away
             s.errorCode.setSilently(0);
             s.errorMessage.setSilently(null);
@@ -136,7 +138,7 @@ public class LoginViewSwt extends AbstractViewSwt {
 
                     // "Welcome" title
                     dom.label(lbl -> {
-                        lbl.setText("Welcome");
+                        lbl.setText(I18n.text(StoreMessages.LOGIN_WELCOME));
                         lbl.setFont(Theme.FONT_WELCOME);
                         lbl.setForeground(Theme.FG_TEXT_DARK);
                         lbl.setBackground(Theme.BG_WHITE);
@@ -150,7 +152,7 @@ public class LoginViewSwt extends AbstractViewSwt {
 
                     // Subtitle
                     dom.label(lbl -> {
-                        lbl.setText("Enter your credentials to continue");
+                        lbl.setText(I18n.text(StoreMessages.LOGIN_SUBTITLE));
                         lbl.setFont(Theme.FONT_SUBTITLE);
                         lbl.setForeground(Theme.FG_TEXT_SUBTLE);
                         lbl.setBackground(Theme.BG_WHITE);
@@ -186,7 +188,7 @@ public class LoginViewSwt extends AbstractViewSwt {
 
                     // "Username" label
                     dom.label(lbl -> {
-                        lbl.setText("Username");
+                        lbl.setText(I18n.text(StoreMessages.LOGIN_USERNAME));
                         lbl.setFont(Theme.FONT_FIELD_LABEL);
                         lbl.setForeground(Theme.FG_TEXT_DARK);
                         lbl.setBackground(Theme.BG_WHITE);
@@ -199,13 +201,13 @@ public class LoginViewSwt extends AbstractViewSwt {
                     dom.spacer(4);
 
                     // User text field
-                    this.userNameField = createBorderedTextField(dom, SWT.SINGLE, "Enter your username");
+                    this.userNameField = createBorderedTextField(dom, SWT.SINGLE, I18n.text(StoreMessages.LOGIN_USERNAME_PLACEHOLDER));
 
                     dom.spacer(16);
 
                     // "Password" label
                     dom.label(lbl -> {
-                        lbl.setText("Password");
+                        lbl.setText(I18n.text(StoreMessages.LOGIN_PASSWORD));
                         lbl.setFont(Theme.FONT_FIELD_LABEL);
                         lbl.setForeground(Theme.FG_TEXT_DARK);
                         lbl.setBackground(Theme.BG_WHITE);
@@ -218,14 +220,14 @@ public class LoginViewSwt extends AbstractViewSwt {
                     dom.spacer(4);
 
                     // Password field
-                    this.passwordField = createBorderedTextField(dom, SWT.SINGLE | SWT.PASSWORD, "Enter your password");
+                    this.passwordField = createBorderedTextField(dom, SWT.SINGLE | SWT.PASSWORD, I18n.text(StoreMessages.LOGIN_PASSWORD_PLACEHOLDER));
                     this.passwordField.addListener(SWT.DefaultSelection, _e -> emitEnter());
 
                     dom.spacer(24);
 
                     // Login button
                     dom.button(btn -> {
-                        btn.setText("Sign in");
+                        btn.setText(I18n.text(StoreMessages.LOGIN_SIGN_IN));
                         btn.setFont(Theme.FONT_BUTTON);
                         btn.setBackground(Theme.PRIMARY_BLUE);
                         btn.setForeground(Theme.FG_TEXT_WHITE);
@@ -294,23 +296,23 @@ public class LoginViewSwt extends AbstractViewSwt {
 
         // Title text
         gc.setFont(Theme.FONT_TITLE);
-        String title = "WDC Store";
+        String title = I18n.text(StoreMessages.APP_NAME);
         Point titleSize = gc.textExtent(title);
         int titleY = iconY + iconSize.y + 16;
         gc.drawText(title, (bounds.width - titleSize.x) / 2, titleY, true);
 
         // Subtitle
         gc.setFont(Theme.FONT_SUBTITLE);
-        String subtitle = "Your trusted online store.";
+        String subtitle = I18n.text(StoreMessages.APP_TAGLINE);
         Point subtitleSize = gc.textExtent(subtitle);
         gc.drawText(subtitle, (bounds.width - subtitleSize.x) / 2, titleY + titleSize.y + 8, true);
 
         // Feature list
         int featureY = titleY + titleSize.y + 60;
         String[][] features = {
-                { Theme.ICON_SHIELD_CHECK, "  Secure checkout" },
-                { Theme.ICON_TRUCK, "  Fast delivery" },
-                { Theme.ICON_ARROW_REPEAT, "  Hassle-free returns" }
+                { Theme.ICON_SHIELD_CHECK, "  " + I18n.text(StoreMessages.LOGIN_FEATURE_SECURE_CHECKOUT) },
+                { Theme.ICON_TRUCK, "  " + I18n.text(StoreMessages.LOGIN_FEATURE_FAST_DELIVERY) },
+                { Theme.ICON_ARROW_REPEAT, "  " + I18n.text(StoreMessages.LOGIN_FEATURE_RETURNS) }
         };
         for (String[] feature : features) {
             gc.setFont(Theme.FONT_ICON);
@@ -362,7 +364,7 @@ public class LoginViewSwt extends AbstractViewSwt {
 
         // Title "WDC Store"
         gc.setFont(Theme.FONT_BANNER_TITLE);
-        String title = "WDC Store";
+        String title = I18n.text(StoreMessages.APP_NAME);
         Point titleSize = gc.textExtent(title);
         int titleY = boxY + boxSize + 10;
         gc.drawText(title, (bounds.width - titleSize.x) / 2, titleY, true);
@@ -370,7 +372,7 @@ public class LoginViewSwt extends AbstractViewSwt {
         // Subtitle
         gc.setAlpha(180);
         gc.setFont(Theme.FONT_BANNER_SUBTITLE);
-        String sub = "Your trusted online store.";
+        String sub = I18n.text(StoreMessages.APP_TAGLINE);
         Point subSize = gc.textExtent(sub);
         gc.drawText(sub, (bounds.width - subSize.x) / 2, titleY + titleSize.y + 4, true);
         gc.setAlpha(255);
@@ -385,7 +387,7 @@ public class LoginViewSwt extends AbstractViewSwt {
         Surface.drawOutlinedPanel(gc, area);
         gc.setForeground(Theme.FG_TEXT_SUBTLE);
         gc.setFont(Theme.FONT_SUBTITLE);
-        String text = "Demo access: admin / admin";
+        String text = I18n.text(StoreMessages.LOGIN_DEMO_ACCESS) + " admin / admin";
         Point size = gc.textExtent(text);
         gc.drawText(text, (area.width - size.x) / 2, (area.height - size.y) / 2, true);
     }

@@ -12,6 +12,7 @@ import org.teavm.jso.dom.events.Event;
 import org.teavm.jso.dom.events.EventListener;
 
 import br.com.wdc.store.presentation.presenter.restricted.cart.CartScope.CartItemScope;
+import br.com.wdc.store.view.teavm.commons.I18n;
 import br.com.wdc.store.view.teavm.commons.SelIcons;
 import br.com.wdc.store.view.teavm.commons.SharedVDomView;
 import br.com.wdc.store.view.teavm.commons.VNode;
@@ -61,7 +62,7 @@ public class CartItemSharedView extends SharedVDomView {
         var name = row.name.get() != null ? row.name.get() : "";
         var price = row.price.get() != null ? row.price.get() : 0.0;
         var quantity = quantity();
-        var subtotal = "$" + String.format("%.2f", price * quantity);
+        var subtotal = I18n.price(price * quantity);
 
         // @formatter:off
         return div(Sel.ITEM_ROW).children(

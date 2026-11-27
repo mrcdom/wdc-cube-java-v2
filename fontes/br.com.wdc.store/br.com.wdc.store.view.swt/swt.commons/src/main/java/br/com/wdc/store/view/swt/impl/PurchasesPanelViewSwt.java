@@ -7,7 +7,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
-import java.util.Locale;
 import java.util.function.IntConsumer;
 import java.util.function.LongConsumer;
 import java.util.function.Supplier;
@@ -21,12 +20,14 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Canvas;
 import org.eclipse.swt.widgets.Composite;
 
+import br.com.wdc.store.i18n.StoreMessages;
 import br.com.wdc.store.presentation.presenter.restricted.home.HomeScope.PurchasesPanelScope;
 import br.com.wdc.store.presentation.presenter.restricted.home.structs.PurchaseInfo;
 import br.com.wdc.store.view.swt.AbstractViewSwt;
 import br.com.wdc.store.view.swt.SwtApp;
 import br.com.wdc.store.view.swt.theme.Surface;
 import br.com.wdc.store.view.swt.theme.Theme;
+import br.com.wdc.store.view.swt.util.I18n;
 import br.com.wdc.store.view.swt.util.SwtDom;
 
 /**
@@ -42,7 +43,7 @@ public class PurchasesPanelViewSwt extends AbstractViewSwt {
     private static final int ITEM_HEIGHT = 50;
     private static final int LIST_SPACING = 8;
 
-    private final SimpleDateFormat dateFormat = new SimpleDateFormat("MM/dd/yyyy", Locale.US);
+    private final SimpleDateFormat dateFormat = I18n.dateFormat();
 
     private boolean notRendered = true;
     private Composite listPanel;
@@ -117,7 +118,7 @@ public class PurchasesPanelViewSwt extends AbstractViewSwt {
                     lbl.setFont(Theme.FONT_HEADER);
                     lbl.setForeground(Theme.FG_TEXT_DARK);
                     lbl.setBackground(Theme.BG_WHITE);
-                    lbl.setText("History");
+                    lbl.setText(I18n.text(StoreMessages.HOME_HISTORY));
                     lbl.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, true, false));
                 });
             });
@@ -127,7 +128,7 @@ public class PurchasesPanelViewSwt extends AbstractViewSwt {
                 lbl.setFont(Theme.FONT_BODY);
                 lbl.setForeground(Theme.FG_TEXT_SUBTLE);
                 lbl.setBackground(Theme.BG_WHITE);
-                lbl.setText("Tap for details");
+                lbl.setText(I18n.text(StoreMessages.HOME_HISTORY_HINT));
                 var gd = new GridData();
                 gdFillH(gd);
                 gdTop(gd);

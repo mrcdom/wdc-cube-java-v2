@@ -6,9 +6,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
 
+import com.codename1.components.ToastBar;
 import com.codename1.ui.Container;
 
 import br.com.wdc.store.view.remote.shell.cn1.StoreCn1RemoteApp;
+import br.com.wdc.store.view.remote.shell.cn1.i18n.Texts;
+import br.com.wdc.store.view.remote.shell.cn1.util.Json;
 
 /**
  * Base of a shell view (one per vsid), in the <b>non-reactive</b> pattern ({@code AbstractViewVaadin}
@@ -69,6 +72,22 @@ public abstract class AbstractCn1View {
     protected Map<String, Object> scope() {
         Map<String, Object> s = session.scope(vsid);
         return s != null ? s : Collections.emptyMap();
+    }
+
+    /** The presenter's message last shown by {@link #showError()}, so that a redraw does not show it again. */
+    private String shownError = "";
+
+    /**
+     * Shows the presenter's error ({@code errorCode} and its {@code errorMessage}, {@code {"key", "args"}} on the wire)
+     * as a toast, in the UI language: once per message, again after the presenter clears it.
+     */
+    protected void showError() {
+        Map<String, Object> scope = scope();
+        String message = Json.intOf(scope, "errorCode") != 0 ? Texts.message(scope.get("errorMessage")) : "";
+        if (!message.isEmpty() && !message.equals(shownError)) {
+            ToastBar.showErrorMessage(message);
+        }
+        shownError = message;
     }
 
     protected void submit(int eventCode, Map<String, Object> form) {

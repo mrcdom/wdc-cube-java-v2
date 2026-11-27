@@ -44,7 +44,7 @@ public class WishlistScope extends Scope {
     // Observed fields: set() with a different value requests the redraw on its own
     public final Prop<List<WishlistItem>> items = prop(List.of());
     public final Prop<Integer> errorCode = prop(0);
-    public final Prop<String> errorMessage = prop();
+    public final Prop<Message> errorMessage = prop();   // br.com.wdc.store.i18n.Message: a catalog key and its arguments
 
     // Actions the view triggers — the presenter binds them in the constructor
     public ActionOf<Long> onRemoveItem = ActionOf.noop();
@@ -122,7 +122,7 @@ public class WishlistPresenter extends AbstractCubePresenter<StoreApplication> {
 - `applyParameters()` is called by the navigation system
 - The scope is created with `bind(new WishlistScope())`: `set` with a different value on a `Prop` marks the view as "dirty" to be sent to the frontend, without `this.update()`. That is only needed when you change something *inside* an already-assigned value (an item of a list)
 - Actions are scope fields (`Action`, `ActionOf<T>`, `ActionOf2<T, U>`) bound in the constructor with `action(...)`/`actionOf(...)`/`actionOf2(...)`. The guard sends any unhandled failure to `app.alertUnexpectedError()` and, at the end, republishes the address — the body has no generic `try/catch`, it only handles the expected failures
-- Validation errors use `errorCode` + `errorMessage` in the scope
+- Validation errors use `errorCode` + `errorMessage` in the scope; the message comes from a generated factory (`this.scope.errorMessage.set(Messages.errorWishlistItemNotFound())`), never a text: each key goes in the catalog of **every** language ([`br.com.wdc.store.i18n`](../br.com.wdc.store.i18n/README.md)), and the views translate it
 
 ### 1.4 Create the calls (optional)
 
@@ -250,6 +250,7 @@ import bridge, { type ViewProps } from "@root/bridge"
 import { BaseViewClass } from "@root/utils/ViewUtils"
 import { Button, ActionButton } from "@root/swc"
 import * as NumberUtils from "@root/utils/NumberUtils"
+import { type Message, t, tm } from "@root/utils/I18n" // over the generated messages.ts
 
 // :: Actions (must match the event codes of the presenter's actions)
 
@@ -261,7 +262,7 @@ const ON_OPEN_PRODUCTS = 2
 // Mirrors the fields the ScopeSerializer writes from WishlistScope
 export type WishlistScope = {
   items?: { id: number; name: string; price: number }[]
-  errorMessage?: string
+  errorMessage?: Message // {key, args}: tm(...) translates it in the browser's language
 }
 
 class WishlistViewClass extends BaseViewClass<ViewProps, WishlistScope> {
@@ -270,7 +271,9 @@ class WishlistViewClass extends BaseViewClass<ViewProps, WishlistScope> {
 
     return (
       <div className={className}>
-        <h2>My Wishlist</h2>
+        <h2>{t("wishlist.title")}</h2>
+
+        {scope.errorMessage && <span>{tm(scope.errorMessage)}</span>}
 
         {scope.items?.map((item) => (
           <div key={item.id}>
@@ -278,13 +281,13 @@ class WishlistViewClass extends BaseViewClass<ViewProps, WishlistScope> {
               {item.name} — {NumberUtils.formatCurrency(item.price)}
             </span>
             <ActionButton quiet size="s" onClick={() => this.emitRemoveItem(item.id)}>
-              Remove
+              {t("wishlist.remove")}
             </ActionButton>
           </div>
         ))}
 
         <Button variant="accent" onClick={this.emitOpenProducts}>
-          Back
+          {t("wishlist.back")}
         </Button>
       </div>
     )
@@ -312,6 +315,7 @@ export default BaseViewClass.FC(WishlistViewClass, "d1e2f3a4b5c6")
 - The **view id** in `BaseViewClass.FC()` must be identical to the scope's `CLASS_ID` in Java
 - The **scope type** must mirror the fields the `ScopeSerializer` writes from the scope (Step 1.2)
 - Send form data with `bridge.setFormField()` before `bridge.submit()`; the field name is the one the `FormParam` reads (`"p.itemId"`)
+- Texts come from the catalog (`t(key)`, `tm(message)`), with each key in every language of [`br.com.wdc.store.i18n`](../br.com.wdc.store.i18n/README.md), and colors from the design tokens of [`br.com.wdc.store.design`](../br.com.wdc.store.design/README.md) (the generated `_tokens.scss`), never literals
 
 ### 4.2 Register the view
 
@@ -371,7 +375,8 @@ And in the frontend, add a button or link that emits the corresponding event.
 - [ ] **React Client**
   - [ ] Create `views/wishlist/WishlistView.tsx` with `BaseViewClass.FC(Class, CLASS_ID)`
   - [ ] Define event codes (must match the codes of the presenter's actions)
-  - [ ] Define the scope type (must match the Java scope's fields)
+  - [ ] Define the scope type (must match the Java scope's fields; `errorMessage?: Message`)
+  - [ ] Add the view's texts (`wishlist.*`, the `error.wishlist.*` of the presenter) to the catalog of every language and run `GenerateMessages`; colors from the design tokens
   - [ ] Register in `index.tsx` via `bridge.registerComponents()`
 
 ---

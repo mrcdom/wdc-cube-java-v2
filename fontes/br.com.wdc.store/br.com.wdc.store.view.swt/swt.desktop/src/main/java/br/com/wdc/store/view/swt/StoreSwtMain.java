@@ -23,11 +23,13 @@ import br.com.wdc.framework.domain.security.JceCryptoProvider;
 import br.com.wdc.store.domain.StoreConfig;
 import br.com.wdc.store.domain.user.UserCriteria;
 import br.com.wdc.store.domain.user.UserRepository;
+import br.com.wdc.store.i18n.StoreMessages;
 import br.com.wdc.store.persistence.impl.LocalDataSource;
 import br.com.wdc.store.persistence.impl.StoreRepositoryBootstrap;
 import br.com.wdc.store.presentation.presenter.RootKeys;
 import br.com.wdc.store.presentation.presenter.open.login.structs.Subject;
 import br.com.wdc.store.scripts.sgbd.DBCreate;
+import br.com.wdc.store.view.swt.util.I18n;
 
 public class StoreSwtMain {
 
@@ -115,7 +117,7 @@ public class StoreSwtMain {
         if (appIcon != null) {
             shell.setImage(appIcon);
         }
-        shell.setText("WDC Store");
+        shell.setText(I18n.text(StoreMessages.APP_NAME));
         shell.setSize(800, 820);
 
         var monitor = display.getPrimaryMonitor().getBounds();

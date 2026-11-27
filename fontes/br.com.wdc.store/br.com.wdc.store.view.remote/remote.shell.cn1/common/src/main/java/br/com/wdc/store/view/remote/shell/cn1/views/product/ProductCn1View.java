@@ -14,6 +14,8 @@ import com.codename1.ui.layouts.FlowLayout;
 import br.com.wdc.store.view.remote.shell.cn1.StoreCn1RemoteApp;
 import br.com.wdc.store.view.remote.shell.cn1.bridge.AbstractCn1View;
 import br.com.wdc.store.view.remote.shell.cn1.bridge.BridgeSession;
+import br.com.wdc.store.view.remote.shell.cn1.i18n.StoreMessages;
+import br.com.wdc.store.view.remote.shell.cn1.i18n.Texts;
 import br.com.wdc.store.view.remote.shell.cn1.util.Cn1Dom;
 import br.com.wdc.store.view.remote.shell.cn1.util.Guard;
 import br.com.wdc.store.view.remote.shell.cn1.util.Images;
@@ -87,10 +89,10 @@ public class ProductCn1View extends AbstractCn1View {
 
             // actions: Back + Add to Cart
             dom.container(new FlowLayout(Component.CENTER, Component.CENTER), null, actions -> {
-                dom.add(new BackButton("Back", () -> submit(EVT_BACK)), null);
+                dom.add(new BackButton(Texts.text(StoreMessages.PRODUCT_BACK), () -> submit(EVT_BACK)), null);
                 dom.button(b -> {
                     b.setUIID(sel.PRIMARY_BUTTON);
-                    b.setText("Add to Cart");
+                    b.setText(Texts.text(StoreMessages.PRODUCT_ADD_TO_CART));
                     b.addActionListener(e -> addToCart());
                     FontImage.setMaterialIcon(b, FontImage.MATERIAL_ADD_SHOPPING_CART, 3.5f);
                 });
@@ -147,7 +149,7 @@ public class ProductCn1View extends AbstractCn1View {
                     dom.boxX(qtyRow -> {
                         dom.label(l -> {
                             l.setUIID(sel.QTY_LABEL);
-                            l.setText("Qty:");
+                            l.setText(Texts.text(StoreMessages.CART_QUANTITY));
                         });
                         stepper = dom.add(new QtyStepper(QTY_BTN_MM,
                                 () -> changeQty(-1), () -> changeQty(1)), null);
@@ -177,6 +179,7 @@ public class ProductCn1View extends AbstractCn1View {
 
     @Override
     public void doUpdate() {
+        showError(); // the presenter's error, if any, as a toast
         layout(); // adapts the price/image arrangement to the mode (re-mounts only on a switch)
 
         Map<String, Object> p = Json.asMap(scope().get("product"));

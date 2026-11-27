@@ -34,7 +34,8 @@ public class MainLayout extends Div {
 
         var ui = attachEvent.getUI();
 
-        // Load application stylesheet
+        // The store's design tokens, then the application stylesheet that maps Lumo onto them
+        ui.getPage().addStyleSheet("styles/tokens.css");
         ui.getPage().addStyleSheet("styles/app.css");
 
         this.executorService = Executors.newScheduledThreadPool(2);

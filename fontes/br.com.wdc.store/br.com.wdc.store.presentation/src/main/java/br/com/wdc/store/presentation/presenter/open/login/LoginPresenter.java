@@ -9,8 +9,9 @@ import br.com.wdc.framework.cube.ScopeSlot;
 import br.com.wdc.framework.domain.exception.AccessDeniedException;
 import br.com.wdc.framework.domain.exception.OfflineException;
 import br.com.wdc.framework.domain.exception.TooManyRequestsException;
-import br.com.wdc.store.presentation.StoreApplication;
+import br.com.wdc.store.i18n.Messages;
 import br.com.wdc.store.presentation.StorageKeys;
+import br.com.wdc.store.presentation.StoreApplication;
 import br.com.wdc.store.presentation.presenter.open.login.calls.CredentialsCheck;
 import br.com.wdc.store.presentation.presenter.restricted.home.HomeKeys;
 
@@ -66,34 +67,34 @@ public class LoginPresenter extends AbstractCubePresenter<StoreApplication> {
 
     private void alertUserOrPasswordNotRecognize() {
         scope.errorCode.set(1);
-        scope.errorMessage.set("Username or password not recognized!");
+        scope.errorMessage.set(Messages.errorSigninUnrecognized());
     }
 
     private void alertDatabaseIsOffline() {
         scope.errorCode.set(4);
-        scope.errorMessage.set("The database is offline!");
+        scope.errorMessage.set(Messages.errorDatabaseOffline());
     }
 
     private void alertAccessDenied(AccessDeniedException caught) {
         scope.errorCode.set(6);
-        scope.errorMessage.set("Access denied: " + caught.getMessage());
+        scope.errorMessage.set(Messages.errorAccessDenied(caught.getMessage()));
 
-        LOG.warn(scope.errorMessage.get());
+        LOG.warn("Access denied: {}", caught.getMessage());
     }
 
     private void alertTooManySignIns(TooManyRequestsException caught) {
         scope.errorCode.set(7);
         var seconds = caught.retryAfterSeconds();
         scope.errorMessage.set(seconds != null
-                ? "Too many failed sign-ins. Try again in " + seconds + (seconds == 1 ? " second." : " seconds.")
-                : "Too many failed sign-ins. Try again later.");
+                ? Messages.errorSigninTooManySeconds(seconds)
+                : Messages.errorSigninTooMany());
     }
 
     private void alertConnectionError(Throwable caught) {
         scope.errorCode.set(5);
-        scope.errorMessage.set("Could not reach the server. Check your connection.");
+        scope.errorMessage.set(Messages.errorConnection());
 
-        LOG.error(scope.errorMessage.get(), caught);
+        LOG.error("Could not reach the server", caught);
     }
 
     // :: User Actions

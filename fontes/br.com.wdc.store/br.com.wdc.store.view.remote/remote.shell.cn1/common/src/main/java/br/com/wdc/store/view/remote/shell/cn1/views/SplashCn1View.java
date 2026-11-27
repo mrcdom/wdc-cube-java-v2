@@ -12,6 +12,8 @@ import com.codename1.ui.layouts.FlowLayout;
 
 import br.com.wdc.store.view.remote.shell.cn1.Sel;
 import br.com.wdc.store.view.remote.shell.cn1.bridge.AbstractItemCn1View;
+import br.com.wdc.store.view.remote.shell.cn1.i18n.StoreMessages;
+import br.com.wdc.store.view.remote.shell.cn1.i18n.Texts;
 import br.com.wdc.store.view.remote.shell.cn1.theme.Colors;
 import br.com.wdc.store.view.remote.shell.cn1.util.Cn1Dom;
 import br.com.wdc.store.view.remote.shell.cn1.util.Decor;
@@ -19,7 +21,7 @@ import br.com.wdc.store.view.remote.shell.cn1.util.Guard;
 
 /**
  * "Brand" screen (splash) — blue gradient + logo + title, with a <b>spinner</b> (connecting) or an
- * error icon + "Try again". A <b>local</b> view (no vsid/bridge), in the non-reactive pattern: the
+ * error icon + "Retry now". A <b>local</b> view (no vsid/bridge), in the non-reactive pattern: the
  * tree is built <b>once</b> (spinner and button always present) and {@link #setState(State)}
  * mutates logo/status and <b>visibility</b> from the {@link State}.
  */
@@ -62,11 +64,11 @@ public final class SplashCn1View extends AbstractItemCn1View<SplashCn1View.State
 
                 dom.label(l -> {
                     l.setUIID(sel.HERO_TITLE);
-                    l.setText("WDC Store");
+                    l.setText(Texts.text(StoreMessages.APP_NAME));
                 });
                 dom.spanLabel(s -> {
                     s.setTextUIID(sel.HERO_SUBTITLE);
-                    s.setText("Your trusted online store.");
+                    s.setText(Texts.text(StoreMessages.APP_TAGLINE));
                 });
 
                 // spinner: always present, visible only while connecting (doUpdate)
@@ -84,7 +86,7 @@ public final class SplashCn1View extends AbstractItemCn1View<SplashCn1View.State
                 // "try again" button: always present, visible only in error mode (doUpdate)
                 dom.container(new FlowLayout(Component.CENTER), null, box -> retry = dom.button(b -> {
                     b.setUIID(sel.SPLASH_RETRY);
-                    b.setText("Try again");
+                    b.setText(Texts.text(StoreMessages.CONNECTION_RETRY_NOW));
                     b.addActionListener(e -> currentRetry.run());
                 }));
             });

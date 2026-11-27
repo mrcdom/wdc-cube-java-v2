@@ -29,6 +29,7 @@
     "watch:clean": "npm run clean && node scripts/watch.js",
     "build": "parcel build --public-url ./ && npm run inject-externals && npm run copy-context",
     "build:clean": "npm run clean && parcel build --public-url ./ && npm run inject-externals && npm run copy-context",
+    "test": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --test test/*.test.mjs",
     "format": "prettier --write .",
     "format:check": "prettier --check ."
   },

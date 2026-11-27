@@ -1,13 +1,40 @@
 /* =========================================================
    WDC Store - Vaadin Theme
-   Harmonized with the React design system.
+   Lumo on the store's design tokens (styles/tokens.css, the
+   --store-* custom properties, loaded before this file).
    ========================================================= */
+
+/* ===== Lumo on the tokens ===== */
+html {
+    --lumo-font-family: var(--store-font-family-base);
+    --lumo-primary-color: var(--store-color-primary);
+    --lumo-primary-color-50pct: color-mix(in srgb, var(--store-color-primary) 50%, transparent);
+    --lumo-primary-color-10pct: color-mix(in srgb, var(--store-color-primary) 10%, transparent);
+    --lumo-primary-text-color: var(--store-color-primary);
+    --lumo-primary-contrast-color: var(--store-color-on-primary);
+    --lumo-base-color: var(--store-color-surface);
+    --lumo-header-text-color: var(--store-color-text);
+    --lumo-body-text-color: var(--store-color-text);
+    --lumo-secondary-text-color: var(--store-color-text-secondary);
+    --lumo-tertiary-text-color: var(--store-color-text-muted);
+    --lumo-error-color: var(--store-color-error);
+    --lumo-error-color-50pct: color-mix(in srgb, var(--store-color-error) 50%, transparent);
+    --lumo-error-color-10pct: color-mix(in srgb, var(--store-color-error) 10%, transparent);
+    --lumo-error-text-color: var(--store-color-error-text);
+    --lumo-error-contrast-color: var(--store-color-on-primary);
+    --lumo-success-color: var(--store-color-success);
+    --lumo-success-color-50pct: color-mix(in srgb, var(--store-color-success) 50%, transparent);
+    --lumo-success-color-10pct: color-mix(in srgb, var(--store-color-success) 10%, transparent);
+    --lumo-success-text-color: var(--store-color-success-text);
+    --lumo-success-contrast-color: var(--store-color-on-primary);
+    --lumo-warning-color: var(--store-color-warning);
+}
 
 /* ===== Global ===== */
 html, body {
-    font-family: Verdana, Geneva, Tahoma, sans-serif;
+    font-family: var(--lumo-font-family);
     font-size: var(--lumo-font-size-m);
-    background-color: #ededed;
+    background-color: var(--store-color-background);
     margin: 0;
     padding: 0;
 }
@@ -16,18 +43,18 @@ html, body {
 .main-layout {
     width: 100%;
     height: 100%;
-    background-color: #ededed;
+    background-color: var(--store-color-background);
 }
 
 .root-view {
-    background-color: #ededed;
+    background-color: var(--store-color-background);
 }
 
 /* ===== Login ===== */
 .login-form {
     width: 100%;
     height: 100%;
-    background: #f5f5f5;
+    background: var(--store-color-background);
     padding: var(--lumo-space-xl);
 }
 
@@ -35,14 +62,14 @@ html, body {
     background: var(--lumo-base-color);
     padding: 0;
     border-radius: 12px;
-    border: 1px solid #e0e0e0;
+    border: 1px solid var(--store-color-border);
     box-shadow: none;
     max-width: 400px;
     overflow: hidden;
 }
 
 .login-header {
-    background-color: #1976d2;
+    background-color: var(--store-color-primary);
     padding: 24px;
     text-align: center;
     width: 100%;
@@ -53,7 +80,7 @@ html, body {
 }
 
 .login-header-title {
-    color: #fff;
+    color: var(--store-color-on-primary);
     font-weight: bold;
     font-size: 20px;
     letter-spacing: 1px;
@@ -75,12 +102,12 @@ html, body {
     width: 44px;
     height: 44px;
     border-radius: 50%;
-    background-color: #1976d2;
+    background-color: var(--store-color-primary);
     display: flex;
     align-items: center;
     justify-content: center;
     margin: 0 auto 12px auto;
-    color: #fff;
+    color: var(--store-color-on-primary);
 }
 
 .login-title {
@@ -97,8 +124,8 @@ html, body {
 }
 
 .login-demo-hint {
-    background-color: #fafafa;
-    border: 1px dashed #bdbdbd;
+    background-color: var(--store-color-surface-muted);
+    border: 1px dashed var(--store-color-border-strong);
     border-radius: 8px;
     padding: 12px;
     text-align: center;
@@ -109,7 +136,7 @@ html, body {
 
 /* ===== Header (AppBar) ===== */
 .header {
-    background-color: #1976d2;
+    background-color: var(--store-color-primary);
     padding: var(--lumo-space-s) var(--lumo-space-m);
     min-height: 56px;
     gap: var(--lumo-space-m);
@@ -126,7 +153,7 @@ html, body {
 .cart-button {
     cursor: pointer;
     font-size: var(--lumo-font-size-m) !important;
-    color: white !important;
+    color: var(--store-color-on-primary) !important;
 }
 
 .exit-button {
@@ -135,7 +162,7 @@ html, body {
 
 /* ===== Home ===== */
 .home-view {
-    background-color: #ededed;
+    background-color: var(--store-color-background);
 }
 
 .home-content {
@@ -162,7 +189,7 @@ html, body {
 .product-selection-item {
     background-color: var(--lumo-base-color);
     border-radius: 12px;
-    border: 1px solid #e0e0e0;
+    border: 1px solid var(--store-color-border);
     box-shadow: none;
     cursor: pointer;
     transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
@@ -174,18 +201,18 @@ html, body {
 .product-selection-item:hover {
     transform: translateY(-4px);
     box-shadow: 0 12px 24px rgba(0,0,0,0.1);
-    border-color: #64b5f6;
+    border-color: var(--store-color-accent-soft);
 }
 
 .product-selection-item .image-pane {
-    background-color: #f8f9fa;
+    background-color: var(--store-color-surface-muted);
     padding: 16px;
     width: 100%;
     box-sizing: border-box;
     display: flex;
     align-items: center;
     justify-content: center;
-    border-bottom: 1px solid #f0f0f0;
+    border-bottom: 1px solid var(--store-color-border);
 }
 
 .product-selection-item .label-group {
@@ -202,7 +229,7 @@ html, body {
 
 .product-selection-item .label-price {
     font-size: 1.1rem;
-    color: #1976d2;
+    color: var(--store-color-primary);
     background-color: transparent;
     padding: 0;
     border-radius: 0;
@@ -222,17 +249,17 @@ html, body {
 
 /* ===== Purchases Panel ===== */
 .purchases-panel {
-    background-color: #fff;
+    background-color: var(--store-color-surface);
     padding: 16px;
     border-radius: 12px;
-    border: 1px solid #e0e0e0;
+    border: 1px solid var(--store-color-border);
     box-shadow: none;
     height: 100%;
     box-sizing: border-box;
 }
 
 .purchases-panel .title {
-    color: #1976d2;
+    color: var(--store-color-primary);
     font-weight: bold;
     font-size: var(--lumo-font-size-s);
     margin: 0 0 12px 0;
@@ -246,7 +273,7 @@ html, body {
 .purchases-panel .pagination {
     gap: var(--lumo-space-xs);
     padding-top: var(--lumo-space-s);
-    border-top: 1px solid #e0e0e0;
+    border-top: 1px solid var(--store-color-border);
     align-items: center;
     justify-content: center;
     width: 100%;
@@ -258,9 +285,9 @@ html, body {
 }
 
 .purchase-item {
-    background-color: #fafafa;
+    background-color: var(--store-color-surface-muted);
     border-radius: var(--lumo-border-radius-m);
-    border-left: 3px solid #1976d2;
+    border-left: 3px solid var(--store-color-primary);
     box-shadow: none;
     overflow: hidden;
     cursor: pointer;
@@ -268,7 +295,7 @@ html, body {
 }
 
 .purchase-item:hover {
-    background-color: #e3f2fd;
+    background-color: var(--store-color-primary-light);
     transform: translateX(2px);
 }
 
@@ -279,7 +306,7 @@ html, body {
     font-weight: 600;
     font-size: 0.75rem;
     border-radius: 0;
-    color: #1976d2;
+    color: var(--store-color-primary);
 }
 
 .purchase-item .order-info {
@@ -304,7 +331,7 @@ html, body {
     padding: var(--lumo-space-l);
     gap: var(--lumo-space-m);
     border-radius: 12px;
-    border: 1px solid #e0e0e0;
+    border: 1px solid var(--store-color-border);
     box-shadow: none;
     max-width: 900px;
     margin: 0 auto;
@@ -318,10 +345,11 @@ html, body {
     padding: var(--lumo-space-xl) 0;
 }
 
+/* A data URI takes no custom properties: its colors are the values of the primary, primaryLight and warning tokens */
 .cart-empty-icon {
     width: 120px;
     height: 120px;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120' viewBox='0 0 64 64'%3E%3Ccircle cx='32' cy='32' r='30' fill='%23e3f2fd'/%3E%3Cpath d='M15 18h4l3 16h20l4-12H22' fill='none' stroke='%231976d2' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3Ccircle cx='25' cy='40' r='2.5' fill='%23ff9800'/%3E%3Ccircle cx='39' cy='40' r='2.5' fill='%23ff9800'/%3E%3Cline x1='30' y1='26' x2='30' y2='32' stroke='%231976d2' stroke-width='2' stroke-linecap='round'/%3E%3Cline x1='27' y1='29' x2='33' y2='29' stroke='%231976d2' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E");
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120' viewBox='0 0 64 64'%3E%3Ccircle cx='32' cy='32' r='30' fill='%23e8f1fc'/%3E%3Cpath d='M15 18h4l3 16h20l4-12H22' fill='none' stroke='%230d66d0' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3Ccircle cx='25' cy='40' r='2.5' fill='%23ff9800'/%3E%3Ccircle cx='39' cy='40' r='2.5' fill='%23ff9800'/%3E%3Cline x1='30' y1='26' x2='30' y2='32' stroke='%230d66d0' stroke-width='2' stroke-linecap='round'/%3E%3Cline x1='27' y1='29' x2='33' y2='29' stroke='%230d66d0' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E");
     background-repeat: no-repeat;
     background-size: contain;
 }
@@ -332,14 +360,14 @@ html, body {
     padding: var(--lumo-space-m);
     gap: 0;
     border-radius: 12px;
-    border: 1px solid #e0e0e0;
+    border: 1px solid var(--store-color-border);
     box-shadow: none;
     max-width: 900px;
     margin: 0 auto;
 }
 
 .product-form .back-button {
-    color: #1976d2 !important;
+    color: var(--store-color-primary) !important;
     cursor: pointer;
     text-decoration: underline;
 }
@@ -377,7 +405,7 @@ html, body {
 .product-form .lbl-price-val {
     font-size: var(--lumo-font-size-xxl);
     font-weight: bold;
-    color: #1976d2;
+    color: var(--store-color-primary);
     margin-top: var(--lumo-space-xs);
 }
 
@@ -398,14 +426,14 @@ html, body {
     padding: var(--lumo-space-l);
     gap: var(--lumo-space-m);
     border-radius: 12px;
-    border: 1px solid #e0e0e0;
+    border: 1px solid var(--store-color-border);
     box-shadow: none;
     max-width: 900px;
     margin: 0 auto;
 }
 
 .receipt-form > .content {
-    border: 1px solid #bdbdbd;
+    border: 1px solid var(--store-color-border-strong);
     border-radius: 8px;
     padding: var(--lumo-space-m);
     font-family: "Courier New", Courier, monospace;
@@ -436,7 +464,7 @@ html, body {
 /* ===== Separator ===== */
 .separator {
     padding: var(--lumo-space-xs) 0;
-    border-bottom: 1px solid #e0e0e0;
+    border-bottom: 1px solid var(--store-color-border);
 }
 
 /* Cart rows: the header and each row (a view of its own) share the same three columns */

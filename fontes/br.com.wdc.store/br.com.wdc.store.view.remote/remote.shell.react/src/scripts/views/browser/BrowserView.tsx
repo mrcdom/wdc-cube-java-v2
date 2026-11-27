@@ -2,6 +2,7 @@ import React, { ReactNode } from "react"
 import clsx from "clsx"
 import bridge, { type ViewProps, BROWSER_VID, type BrowserScope } from "@root/bridge"
 import { BaseViewClass } from "@root/utils/ViewUtils"
+import { t } from "@root/utils/I18n"
 import { ActionButton, ProgressCircle } from "@root/swc"
 import Sel from "./browser-sel"
 
@@ -86,11 +87,11 @@ function AppAlert(props: AppAlertProps) {
       detailMessage = props.args[1]
       break
     case -2:
-      msgNode = "The URI " + props.args[0] + " is not accessible"
+      msgNode = t("alert.uriNotAccessible", { uri: props.args[0] ?? "" })
       detailMessage = props.args[1]
       break
     default:
-      msgNode = props.args.length > 0 ? props.args[0] : "An unexpected error occurred"
+      msgNode = props.args.length > 0 ? props.args[0] : t("error.unexpected")
   }
 
   return (
@@ -100,7 +101,7 @@ function AppAlert(props: AppAlertProps) {
       </span>
       <div style={{ flex: 1 }}>
         <div className={clsx(Sel.fontBold, Sel.textSm)} style={{ color: "var(--app-error-text)" }}>
-          Warning!
+          {t("alert.title")}
         </div>
         <span className={Sel.alertErrorText}>{msgNode}</span>
         {detailMessage && (
@@ -110,7 +111,7 @@ function AppAlert(props: AppAlertProps) {
         )}
       </div>
       <ActionButton quiet size="s" onClick={props.onDismiss} style={{ marginLeft: "auto" }}>
-        OK
+        {t("alert.ok")}
       </ActionButton>
     </div>
   )
@@ -133,10 +134,13 @@ function ConnectionAlert(props: ConnectionAlertProps) {
       minutes = Math.floor(seconds / 60)
       seconds = seconds - minutes * 60
     }
-    timeText = minutes > 0 ? `Reconnecting in ${minutes}m ${seconds}s...` : `Reconnecting in ${seconds}s...`
+    timeText =
+      minutes > 0
+        ? t("connection.reconnectingInMinutes", { minutes: String(minutes), seconds: String(seconds) })
+        : t("connection.reconnectingInSeconds", { seconds: String(seconds) })
     showRetry = true
   } else {
-    timeText = "Reconnecting now..."
+    timeText = t("connection.reconnectingNow")
   }
 
   return (
@@ -146,7 +150,7 @@ function ConnectionAlert(props: ConnectionAlertProps) {
         style={{ display: "inline-flex", borderRadius: "0 0 8px 8px", padding: "6px 12px", margin: 0 }}
       >
         <span className={clsx(Sel.fontBold, Sel.textSm)} style={{ color: "var(--app-error-text)" }}>
-          Not connected.
+          {t("connection.notConnected")}
         </span>{" "}
         <span className={Sel.textSm} style={{ color: "var(--app-error-text)" }}>
           {timeText}
@@ -157,7 +161,7 @@ function ConnectionAlert(props: ConnectionAlertProps) {
             style={{ color: "var(--app-accent)", textDecoration: "underline" }}
             onClick={props.onReconnectNow}
           >
-            Retry now
+            {t("connection.retryNow")}
           </span>
         )}
       </div>

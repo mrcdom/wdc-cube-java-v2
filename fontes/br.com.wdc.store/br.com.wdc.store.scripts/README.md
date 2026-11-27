@@ -60,6 +60,19 @@ mvn exec:java -pl br.com.wdc.store/br.com.wdc.store.scripts \
     -Dexec.mainClass="br.com.wdc.store.scripts.codegen.GenerateJooqSchema"
 ```
 
+## GenerateDesignTokens and GenerateMessages — the tokens and the UI texts
+
+`GenerateDesignTokens` reads `br.com.wdc.store.design/src/main/tokens/tokens.json` (W3C Design Tokens) and `GenerateMessages` reads `br.com.wdc.store.i18n/src/main/catalog/<language>/*.json`; each writes its generated code for every view technology (Java, Codename One's Java 8 copy, Sass, TypeScript, Dart, CSS — see the two modules' READMEs). The generated files are committed; `DesignTokensTest` and `MessagesCatalogTest` fail while they are stale.
+
+Run them from `fontes/` after changing the tokens or a catalog:
+
+```bash
+mvn exec:java -pl br.com.wdc.store/br.com.wdc.store.scripts \
+    -Dexec.mainClass="br.com.wdc.store.scripts.codegen.GenerateDesignTokens"
+mvn exec:java -pl br.com.wdc.store/br.com.wdc.store.scripts \
+    -Dexec.mainClass="br.com.wdc.store.scripts.codegen.GenerateMessages"
+```
+
 ## Dependencies
 
 | Artifact | Role |

@@ -7,6 +7,7 @@ import br.com.wdc.framework.cube.Action;
 import br.com.wdc.framework.cube.ActionOf;
 import br.com.wdc.framework.cube.Prop;
 import br.com.wdc.framework.cube.Scope;
+import br.com.wdc.store.i18n.Message;
 
 /** What the cart draws ({@link CartPresenter}): one row per item, each a segment of its own, and the total. */
 public class CartScope extends Scope {
@@ -36,7 +37,7 @@ public class CartScope extends Scope {
     public final Prop<List<CartItemScope>> rows = prop(Collections.emptyList());
     public final Prop<Double> total = prop(0.0);
     public final Prop<Integer> errorCode = prop(0);
-    public final Prop<String> errorMessage = prop();
+    public final Prop<Message> errorMessage = prop();
 
     public Action onBuy = Action.NOOP;
     public Action onOpenProducts = Action.NOOP;

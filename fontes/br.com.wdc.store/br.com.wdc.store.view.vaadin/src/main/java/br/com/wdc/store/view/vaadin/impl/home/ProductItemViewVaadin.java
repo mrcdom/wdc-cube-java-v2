@@ -1,7 +1,5 @@
 package br.com.wdc.store.view.vaadin.impl.home;
 
-import java.text.NumberFormat;
-import java.util.Locale;
 import java.util.Objects;
 
 import com.vaadin.flow.component.html.Div;
@@ -12,6 +10,7 @@ import br.com.wdc.store.presentation.presenter.restricted.home.HomeScope.Product
 import br.com.wdc.store.presentation.presenter.restricted.products.structs.ProductInfo;
 import br.com.wdc.store.view.vaadin.AbstractViewVaadin;
 import br.com.wdc.store.view.vaadin.StoreVaadinApplication;
+import br.com.wdc.store.view.vaadin.util.I18n;
 import br.com.wdc.store.view.vaadin.util.ResourceCatalog;
 import br.com.wdc.store.view.vaadin.util.VaadinDom;
 
@@ -56,7 +55,7 @@ public class ProductItemViewVaadin extends AbstractViewVaadin<ProductsPanelScope
         }
 
         if (this.priceOldValue != this.item.price) {
-            this.priceElm.setText(NumberFormat.getCurrencyInstance(Locale.US).format(this.item.price));
+            this.priceElm.setText(I18n.price(this.item.price));
             this.priceOldValue = this.item.price;
         }
     }
@@ -95,7 +94,7 @@ public class ProductItemViewVaadin extends AbstractViewVaadin<ProductsPanelScope
                 dom.span(label -> {
                     label.addClassName("label-price");
                     this.priceElm = label;
-                    this.priceElm.setText(NumberFormat.getCurrencyInstance(Locale.US).format(this.item.price));
+                    this.priceElm.setText(I18n.price(this.item.price));
                     this.priceOldValue = this.item.price;
                 });
             });

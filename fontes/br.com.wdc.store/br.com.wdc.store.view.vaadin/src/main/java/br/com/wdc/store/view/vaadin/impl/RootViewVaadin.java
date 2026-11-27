@@ -1,6 +1,8 @@
 package br.com.wdc.store.view.vaadin.impl;
 
 import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.notification.Notification;
+import com.vaadin.flow.component.notification.NotificationVariant;
 
 import br.com.wdc.store.presentation.presenter.RootScope;
 import br.com.wdc.store.view.vaadin.AbstractViewVaadin;
@@ -41,6 +43,14 @@ public class RootViewVaadin extends AbstractViewVaadin<RootScope> {
                 this.contentPane.add(newContentView.getElement());
             }
             this.currentContentView = newContentView;
+        }
+
+        // An unexpected error: shown once, as a notification over the content
+        var error = this.scope.errorMessage.get();
+        if (error != null) {
+            this.scope.errorMessage.setSilently(null);
+            Notification.show(text(error), 8000, Notification.Position.TOP_CENTER)
+                    .addThemeVariants(NotificationVariant.LUMO_ERROR);
         }
     }
 

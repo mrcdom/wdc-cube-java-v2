@@ -5,6 +5,7 @@ import clsx from "clsx"
 import bridge from "./bridge"
 import { Theme } from "./swc"
 import GlobalSel from "./global-sel"
+import { LANGUAGE, t } from "./utils/I18n"
 
 import BrowserView from "./views/browser/BrowserView"
 import SlotView from "./views/SlotView"
@@ -18,7 +19,9 @@ import ProductView from "./views/product/ProductView"
 import ProductsPanel from "./views/home/ProductsPanel"
 import PurchasesPanel from "./views/home/PurchasesPanel"
 
-bridge.configure("~rr:")
+document.documentElement.lang = LANGUAGE
+
+bridge.configure("~rr:", { outdatedMessage: t("connection.outdatedPage") })
 
 bridge.registerComponents(
   BrowserView,

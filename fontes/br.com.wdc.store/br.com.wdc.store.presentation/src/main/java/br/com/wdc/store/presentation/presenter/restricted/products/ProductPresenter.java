@@ -8,6 +8,7 @@ import br.com.wdc.framework.cube.CubeIntent;
 import br.com.wdc.framework.cube.FormParam;
 import br.com.wdc.framework.cube.ScopeSlot;
 import br.com.wdc.framework.domain.exception.OfflineException;
+import br.com.wdc.store.i18n.Messages;
 import br.com.wdc.store.presentation.StoreApplication;
 import br.com.wdc.store.presentation.presenter.restricted.cart.CartKeys;
 import br.com.wdc.store.presentation.presenter.restricted.home.HomeKeys;
@@ -100,7 +101,7 @@ public class ProductPresenter extends AbstractCubePresenter<StoreApplication> {
             new CartKeys(this.app).flip();
         } catch (OfflineException caught) {
             this.alertDatabaseNotAvailable();
-            LOG.error(this.scope.errorMessage.get(), caught);
+            LOG.error("addToCart: the cart is unavailable", caught);
         }
     }
 
@@ -108,17 +109,17 @@ public class ProductPresenter extends AbstractCubePresenter<StoreApplication> {
 
     private void alertDatabaseNotAvailable() {
         this.scope.errorCode.set(1);
-        this.scope.errorMessage.set("Cart unavailable. Please wait a moment and try again.");
+        this.scope.errorMessage.set(Messages.errorCartUnavailable());
     }
 
     private void alertCartItemWidthLessThanOneItem() {
         this.scope.errorCode.set(2);
-        this.scope.errorMessage.set("The quantity of items in the cart must be at least 1 (one).");
+        this.scope.errorMessage.set(Messages.errorCartQuantityAtLeastOne());
     }
 
     private void errorInvalidQuantity() {
         this.scope.errorCode.set(3);
-        this.scope.errorMessage.set("Invalid quantity encoding.");
+        this.scope.errorMessage.set(Messages.errorCartQuantityMalformed());
     }
 
 }

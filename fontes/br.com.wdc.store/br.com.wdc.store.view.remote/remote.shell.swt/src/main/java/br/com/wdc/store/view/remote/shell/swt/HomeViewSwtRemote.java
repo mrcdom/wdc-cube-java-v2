@@ -54,7 +54,7 @@ class HomeViewSwtRemote extends HomeViewSwt {
 		scope.nickName.set(s.getString("nickName"));
 		var cartCount = s.getLong("cartItemCount");
 		scope.cartItemCount.set(cartCount != null ? cartCount.intValue() : 0);
-		scope.errorMessage.set(s.getString("errorMessage"));
+		scope.errorMessage.set(WireMessages.messageOf(s, "errorMessage"));
 		var code = s.getLong("errorCode");
 		scope.errorCode.set(code != null ? code.intValue() : 0);
 		return scope;

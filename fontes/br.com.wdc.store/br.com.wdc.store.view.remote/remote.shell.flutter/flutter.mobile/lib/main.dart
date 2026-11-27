@@ -52,6 +52,8 @@ Future<String?> _fetchSessionInit(String baseHttpUrl) async {
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  // The language of the texts: the device's, once
+  StoreI18n.init();
   _prefs = await SharedPreferences.getInstance();
   _securePrefs = const FlutterSecureStorage();
 
@@ -162,10 +164,10 @@ class StoreMobileApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'WDC Store',
+      title: StoreI18n.text(MessageKeys.appName),
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF0D66D0)),
+        colorScheme: ColorScheme.fromSeed(seedColor: StoreTokens.primary),
         useMaterial3: true,
       ),
       home: const Scaffold(body: SafeArea(child: BrowserView())),
@@ -186,16 +188,16 @@ class ConnectionErrorApp extends StatelessWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(Icons.cloud_off, size: 64, color: Colors.grey),
+              const Icon(Icons.cloud_off, size: 64, color: StoreTokens.textMuted),
               const SizedBox(height: 16),
-              const Text(
-                'Could not connect to the server.',
-                style: TextStyle(fontSize: 18),
+              Text(
+                StoreI18n.text(MessageKeys.errorConnection),
+                style: const TextStyle(fontSize: StoreTokens.fontSizeLg),
               ),
               const SizedBox(height: 8),
               Text(
                 endpoint,
-                style: const TextStyle(fontSize: 14, color: Colors.grey),
+                style: const TextStyle(fontSize: StoreTokens.fontSizeSm, color: StoreTokens.textSecondary),
               ),
             ],
           ),

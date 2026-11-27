@@ -3,6 +3,8 @@
 // Generated from common inline style patterns found across TeaVM views
 // =============================================================================
 
+@use "generated/tokens" as *;
+
 // -----------------------------------------------------------------------------
 // 1. DISPLAY & VISIBILITY
 // -----------------------------------------------------------------------------
@@ -416,7 +418,7 @@
   color: var(--app-accent);
 }
 .text-white {
-  color: #fff;
+  color: $color-on-primary;
 }
 .text-white-70 {
   color: rgba(255, 255, 255, 0.7);
@@ -486,7 +488,7 @@
   background: var(--app-accent-light);
 }
 .bg-white {
-  background: #fff;
+  background: $color-surface;
 }
 .bg-none {
   background: none;
@@ -496,10 +498,10 @@
 }
 
 .bg-gradient-primary {
-  background: linear-gradient(135deg, #0d66d0 0%, #1a8cff 100%);
+  background: linear-gradient(135deg, $color-primary 0%, $color-accent 100%);
 }
 .bg-gradient-primary-extended {
-  background: linear-gradient(160deg, #0d66d0 0%, #1a8cff 40%, #4da6ff 100%);
+  background: linear-gradient(160deg, $color-primary 0%, $color-accent 40%, $color-accent-soft 100%);
 }
 
 .bg-white-04 {
@@ -528,7 +530,7 @@
   box-shadow: var(--app-shadow-lg);
 }
 .shadow-blue {
-  box-shadow: 0 2px 8px rgba(13, 102, 208, 0.3);
+  box-shadow: 0 2px 8px rgba($color-primary, 0.3);
 }
 
 .backdrop-blur-sm {
@@ -584,10 +586,10 @@
 // 11. ERROR/ALERT SEMANTIC COMPONENTS
 // -----------------------------------------------------------------------------
 :root {
-  --app-error-bg: #fef2f2;
-  --app-error-border: #fecaca;
-  --app-error-text: #991b1b;
-  --app-error-icon: #dc2626;
+  --app-error-bg: #{$color-error-background};
+  --app-error-border: #{$color-error-border};
+  --app-error-text: #{$color-error-text};
+  --app-error-icon: #{$color-error};
 }
 
 .wdc-alert--error {
@@ -621,9 +623,9 @@
   align-items: center;
   justify-content: space-between;
   padding: 10px 16px;
-  background: linear-gradient(135deg, #0d66d0 0%, #1a8cff 100%);
+  background: linear-gradient(135deg, $color-primary 0%, $color-accent 100%);
   flex-shrink: 0;
-  box-shadow: 0 2px 8px rgba(13, 102, 208, 0.3);
+  box-shadow: 0 2px 8px rgba($color-primary, 0.3);
 }
 
 .wdc-navbar__group {
@@ -719,7 +721,7 @@
 // 16. CART BADGE
 // -----------------------------------------------------------------------------
 .wdc-cart-badge {
-  background: #fff;
+  background: $color-on-primary;
   color: var(--app-accent);
   font-size: 0.65rem;
   font-weight: 700;
@@ -972,21 +974,21 @@
   align-items: center;
   gap: 10px;
   padding: 14px 18px;
-  background: #f0fdf4;
-  border: 1px solid #bbf7d0;
+  background: $color-success-background;
+  border: 1px solid $color-success-border;
   border-radius: var(--app-radius-sm);
   margin-bottom: 16px;
 }
 
 .wdc-alert--success__icon {
-  color: #16a34a;
+  color: $color-success;
   font-size: 1.2rem;
   flex-shrink: 0;
 }
 
 .wdc-alert--success__text {
   font-size: 0.9rem;
-  color: #166534;
+  color: $color-success-text;
   font-weight: 600;
 }
 

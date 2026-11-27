@@ -26,6 +26,21 @@
             <scope>provided</scope>
         </dependency>
 
+        <!-- UI text catalog (StoreMessages, Message): compiled to JS by the consumer -->
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <version>${project.version}</version>
+            <artifactId>br.com.wdc.store.i18n</artifactId>
+            <scope>provided</scope>
+        </dependency>
+
+        <!-- Tests of the pure-Java parts on the JVM -->
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <scope>test</scope>
+        </dependency>
+
         <!-- TeaVM JSO (provided — consumer supplies TeaVM) -->
         <dependency>
             <groupId>org.teavm</groupId>

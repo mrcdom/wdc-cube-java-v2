@@ -39,7 +39,7 @@ public class CartView extends AbstractRemoteView {
 
     private CartScope adaptScope() {
         ViewScope scope = scope();
-        adaptedScope.errorMessage.set(scope.getString("errorMessage"));
+        adaptedScope.errorMessage.set(getMessage("errorMessage"));
         adaptedScope.total.set(scope.getDouble("total"));
         return adaptedScope;
     }

@@ -10,8 +10,9 @@ import br.com.wdc.framework.cube.ScopeSlot;
 import br.com.wdc.framework.domain.security.AuthenticationService;
 import br.com.wdc.store.domain.user.UserCriteria;
 import br.com.wdc.store.domain.user.UserRepository;
-import br.com.wdc.store.presentation.StoreApplication;
+import br.com.wdc.store.i18n.Messages;
 import br.com.wdc.store.presentation.StorageKeys;
+import br.com.wdc.store.presentation.StoreApplication;
 import br.com.wdc.store.presentation.presenter.open.login.structs.Subject;
 import br.com.wdc.store.presentation.presenter.restricted.home.HomeKeys;
 
@@ -109,19 +110,19 @@ public class RootPresenter extends AbstractCubePresenter<StoreApplication> {
         this.alertUnexpectedError(LOG, message, caught);
     }
 
+    /**
+     * Shows an unexpected error: the user sees its cause, translated by the view ({@code error.unexpectedWithCause});
+     * {@code message}, the code's own description of what failed, goes to the log only.
+     */
     public void alertUnexpectedError(Log logger, String message, Throwable caught) {
         if (StringUtils.isBlank(caught.getMessage())) {
-            this.scope.errorMessage.set(message);
+            this.scope.errorMessage.set(Messages.errorUnexpected());
         } else {
-            this.scope.errorMessage.set(message + ": " + caught.getMessage());
+            this.scope.errorMessage.set(Messages.errorUnexpectedWithCause(caught.getMessage()));
         }
         // The same message again is still a new alert: the prop alone would not redraw
         this.update();
-        if (logger != null) {
-            logger.error(this.scope.errorMessage.get(), caught);
-        } else {
-            LOG.error(this.scope.errorMessage.get(), caught);
-        }
+        (logger != null ? logger : LOG).error(message, caught);
     }
 
     // :: Slots

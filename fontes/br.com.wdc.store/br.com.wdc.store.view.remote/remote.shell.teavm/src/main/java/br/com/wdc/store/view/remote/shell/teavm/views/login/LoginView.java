@@ -42,7 +42,7 @@ public class LoginView extends AbstractRemoteView {
     private LoginScope adaptScope() {
         ViewScope scope = scope();
         adaptedScope.loading.set(scope.getBoolean("loading"));
-        adaptedScope.errorMessage.set(scope.getString("errorMessage"));
+        adaptedScope.errorMessage.set(getMessage("errorMessage"));
         adaptedScope.errorCode.set(scope.getInt("errorCode"));
         adaptedScope.userName.set(scope.getString("userName"));
         return adaptedScope;

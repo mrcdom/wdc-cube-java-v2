@@ -205,7 +205,8 @@ public class CartScope extends Scope {
     public final Prop<List<CartItemScope>> rows = prop(Collections.emptyList());
     public final Prop<Double> total = prop(0.0);
     public final Prop<Integer> errorCode = prop(0);
-    public final Prop<String> errorMessage = prop();
+    // A Message (br.com.wdc.store.i18n): a catalog key and its arguments, which each view translates
+    public final Prop<Message> errorMessage = prop();
 
     // Actions the view fires (the remote serializer ignores them)
     public Action onBuy = Action.NOOP;
@@ -598,7 +599,7 @@ const ON_BACK = 3
 export type CartScope = {
   rowsViewIds?: string[]
   total?: number
-  errorMessage?: string
+  errorMessage?: Message // {key, args}, translated in the browser's language with tm(...) (@root/utils/I18n)
 }
 
 class CartViewClass extends BaseViewClass<ViewProps, CartScope> {
@@ -715,7 +716,7 @@ The Scope is serialized by the framework's `ScopeSerializer`, which inspects the
 }
 ```
 
-The `"#"` field is the `instanceId` (`"<CLASS_ID>:<n>"`) that binds the JSON scope to the corresponding view instance in the shell. A `null` value (here, `errorMessage`) is omitted; each row is a view of its own, sent as its own scope.
+The `"#"` field is the `instanceId` (`"<CLASS_ID>:<n>"`) that binds the JSON scope to the corresponding view instance in the shell. A `null` value (here, `errorMessage`) is omitted; a `Message` goes as `{"key": ..., "args": {...}}` and the shell translates it with its generated catalog; each row is a view of its own, sent as its own scope.
 
 ### Virtual Threads for Scalability
 

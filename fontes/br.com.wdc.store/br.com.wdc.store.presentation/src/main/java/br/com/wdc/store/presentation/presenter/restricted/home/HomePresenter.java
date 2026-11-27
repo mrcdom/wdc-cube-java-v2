@@ -10,8 +10,9 @@ import br.com.wdc.framework.cube.FormParam;
 import br.com.wdc.framework.cube.Scope;
 import br.com.wdc.framework.cube.ScopeSlot;
 import br.com.wdc.framework.domain.security.AuthenticationService;
-import br.com.wdc.store.presentation.StoreApplication;
+import br.com.wdc.store.i18n.Messages;
 import br.com.wdc.store.presentation.StorageKeys;
+import br.com.wdc.store.presentation.StoreApplication;
 import br.com.wdc.store.presentation.exception.ProductNotFoundException;
 import br.com.wdc.store.presentation.exception.PurchaseNotFoundException;
 import br.com.wdc.store.presentation.presenter.open.login.LoginKeys;
@@ -230,22 +231,22 @@ public class HomePresenter extends AbstractCubePresenter<StoreApplication> {
 
     private void alertProductNotFound() {
         this.scope.errorCode.set(3);
-        this.scope.errorMessage.set("Product code not found.");
+        this.scope.errorMessage.set(Messages.errorHomeProductNotFound());
     }
 
     private void alertPurchaseNotFound() {
         this.scope.errorCode.set(5);
-        this.scope.errorMessage.set("Receipt code not found.");
+        this.scope.errorMessage.set(Messages.errorHomeReceiptNotFound());
     }
 
     private void alertProductIdRequired() {
         this.scope.errorCode.set(6);
-        this.scope.errorMessage.set("Product code is a required argument.");
+        this.scope.errorMessage.set(Messages.errorHomeProductRequired());
     }
 
     private void alertPurchaseIdRequired() {
         this.scope.errorCode.set(7);
-        this.scope.errorMessage.set("Receipt code is a required argument.");
+        this.scope.errorMessage.set(Messages.errorHomeReceiptRequired());
     }
 
     // :: Slots

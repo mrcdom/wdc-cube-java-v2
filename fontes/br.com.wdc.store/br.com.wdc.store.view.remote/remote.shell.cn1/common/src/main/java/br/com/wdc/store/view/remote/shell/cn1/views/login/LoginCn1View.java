@@ -17,6 +17,8 @@ import com.codename1.ui.layouts.FlowLayout;
 import br.com.wdc.store.view.remote.shell.cn1.StoreCn1RemoteApp;
 import br.com.wdc.store.view.remote.shell.cn1.bridge.AbstractCn1View;
 import br.com.wdc.store.view.remote.shell.cn1.bridge.BridgeSession;
+import br.com.wdc.store.view.remote.shell.cn1.i18n.StoreMessages;
+import br.com.wdc.store.view.remote.shell.cn1.i18n.Texts;
 import br.com.wdc.store.view.remote.shell.cn1.theme.Colors;
 import br.com.wdc.store.view.remote.shell.cn1.util.Cn1Dom;
 import br.com.wdc.store.view.remote.shell.cn1.util.Decor;
@@ -105,22 +107,22 @@ public class LoginCn1View extends AbstractCn1View {
                 });
                 dom.label(l -> {
                     l.setUIID(sel.BANNER_TITLE);
-                    l.setText("WDC Store");
+                    l.setText(Texts.text(StoreMessages.APP_NAME));
                 });
                 dom.spanLabel(l -> {
                     l.setTextUIID(sel.BANNER_SUBTITLE);
-                    l.setText("Your trusted online store.");
+                    l.setText(Texts.text(StoreMessages.APP_TAGLINE));
                 });
             });
 
             // welcome
             dom.label(l -> {
                 l.setUIID(sel.WELCOME_TITLE);
-                l.setText("Welcome");
+                l.setText(Texts.text(StoreMessages.LOGIN_WELCOME));
             });
             dom.spanLabel(l -> {
                 l.setTextUIID(sel.WELCOME_SUBTITLE);
-                l.setText("Sign in with your credentials to continue");
+                l.setText(Texts.text(StoreMessages.LOGIN_SUBTITLE));
             });
 
             // error
@@ -133,17 +135,17 @@ public class LoginCn1View extends AbstractCn1View {
             // username
             dom.label(l -> {
                 l.setUIID(sel.FIELD_LABEL);
-                l.setText("Username");
+                l.setText(Texts.text(StoreMessages.LOGIN_USERNAME));
             });
-            user = dom.textField(tf -> tf.setHint("Enter your username"));
+            user = dom.textField(tf -> tf.setHint(Texts.text(StoreMessages.LOGIN_USERNAME_PLACEHOLDER)));
 
             // password
             dom.label(l -> {
                 l.setUIID(sel.FIELD_LABEL);
-                l.setText("Password");
+                l.setText(Texts.text(StoreMessages.LOGIN_PASSWORD));
             });
             pass = dom.textField(tf -> {
-                tf.setHint("Enter your password");
+                tf.setHint(Texts.text(StoreMessages.LOGIN_PASSWORD_PLACEHOLDER));
                 tf.setConstraint(TextArea.PASSWORD);
                 tf.setDoneListener(e -> doLogin()); // Enter in the field triggers the login
             });
@@ -151,13 +153,13 @@ public class LoginCn1View extends AbstractCn1View {
             // loading
             loading = dom.label(l -> {
                 l.setUIID(sel.WELCOME_SUBTITLE);
-                l.setText("Signing in...");
+                l.setText(Texts.text(StoreMessages.LOGIN_SIGNING_IN));
             });
 
             // sign in
             dom.button(b -> {
                 b.setUIID(sel.PRIMARY_BUTTON);
-                b.setText("Sign in");
+                b.setText(Texts.text(StoreMessages.LOGIN_SIGN_IN));
                 b.addActionListener(e -> doLogin());
             });
 
@@ -166,7 +168,7 @@ public class LoginCn1View extends AbstractCn1View {
                 hint.setUIID(sel.DEMO_HINT);
                 dom.spanLabel(l -> {
                     l.setTextUIID(sel.DEMO_TEXT);
-                    l.setText("Demo access: admin / admin");
+                    l.setText(Texts.text(StoreMessages.LOGIN_DEMO_ACCESS) + " admin / admin");
                 });
             });
         });
@@ -188,15 +190,15 @@ public class LoginCn1View extends AbstractCn1View {
                 });
                 dom.label(l -> {
                     l.setUIID(sel.HERO_TITLE);
-                    l.setText("WDC Store");
+                    l.setText(Texts.text(StoreMessages.APP_NAME));
                 });
                 dom.spanLabel(l -> {
                     l.setTextUIID(sel.HERO_SUBTITLE);
-                    l.setText("Your trusted online store.");
+                    l.setText(Texts.text(StoreMessages.APP_TAGLINE));
                 });
-                feature(dom, FontImage.MATERIAL_VERIFIED_USER, "Secure checkout");
-                feature(dom, FontImage.MATERIAL_LOCAL_SHIPPING, "Fast delivery");
-                feature(dom, FontImage.MATERIAL_AUTORENEW, "Hassle-free returns");
+                feature(dom, FontImage.MATERIAL_VERIFIED_USER, Texts.text(StoreMessages.LOGIN_FEATURE_SECURE_CHECKOUT));
+                feature(dom, FontImage.MATERIAL_LOCAL_SHIPPING, Texts.text(StoreMessages.LOGIN_FEATURE_FAST_DELIVERY));
+                feature(dom, FontImage.MATERIAL_AUTORENEW, Texts.text(StoreMessages.LOGIN_FEATURE_RETURNS));
             });
         });
     }
@@ -226,9 +228,9 @@ public class LoginCn1View extends AbstractCn1View {
         layout(); // adapts the structure to the current mode (re-mounts only on a switch)
         Map<String, Object> scope = scope();
         Guard.visible(loading, Json.boolOf(scope, "loading"));
-        boolean hasError = Json.intOf(scope, "errorCode") != 0;
-        errorText.accept(hasError ? "Invalid username or password."
- : "");
-        Guard.visible(error, hasError);
+        // the presenter's message ({"key", "args"} on the wire), in the UI language
+        String message = Json.intOf(scope, "errorCode") != 0 ? Texts.message(scope.get("errorMessage")) : "";
+        errorText.accept(message);
+        Guard.visible(error, !message.isEmpty());
     }
 }

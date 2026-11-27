@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
 import '../design_tokens.dart';
+import '../generated/messages.dart' show MessageKeys;
+import '../i18n.dart';
 import '../widgets/error_banner.dart';
 import 'package:remote_bridge_flutter/remote_bridge_flutter.dart';
 
@@ -25,7 +27,8 @@ class _HomeViewState extends BaseViewState<HomeView> {
   Widget build(BuildContext context) {
     final nickName = scope['nickName'] as String? ?? '';
     final cartItemCount = (scope['cartItemCount'] as num?)?.toInt() ?? 0;
-    final errorMessage = scope['errorMessage'] as String?;
+    final message = StoreI18n.message(scope['errorMessage']);
+    final errorMessage = message.isEmpty ? null : message;
     final contentViewId = scope['contentViewId'] as String?;
     final productsPanelViewId = scope['productsPanelViewId'] as String?;
     final purchasesPanelViewId = scope['purchasesPanelViewId'] as String?;
@@ -123,7 +126,7 @@ class _HeaderPanel extends StatelessWidget {
       builder: (context, constraints) {
         final isExpanded = constraints.maxWidth >= breakpointSm;
         return Container(
-          decoration: const BoxDecoration(
+          decoration: BoxDecoration(
             gradient: headerGradient,
             boxShadow: headerShadow,
           ),
@@ -134,7 +137,7 @@ class _HeaderPanel extends StatelessWidget {
               IconButton(
                 icon: Transform.flip(
                   flipX: true,
-                  child: const Icon(Icons.logout, color: Colors.white),
+                  child: const Icon(Icons.logout, color: appOnPrimary),
                 ),
                 onPressed: onExit,
               ),
@@ -145,10 +148,10 @@ class _HeaderPanel extends StatelessWidget {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Text(
-                      'Welcome,',
+                      StoreI18n.text(MessageKeys.homeWelcome),
                       style: TextStyle(
                         fontSize: 11,
-                        color: Colors.white.withValues(alpha: 0.7),
+                        color: appOnPrimary.withValues(alpha: 0.7),
                       ),
                     ),
                     Text(
@@ -156,7 +159,7 @@ class _HeaderPanel extends StatelessWidget {
                       style: const TextStyle(
                         fontSize: 13,
                         fontWeight: FontWeight.w600,
-                        color: Colors.white,
+                        color: appOnPrimary,
                       ),
                     ),
                   ],
@@ -165,25 +168,25 @@ class _HeaderPanel extends StatelessWidget {
               // Center: logo
               const Icon(
                 Icons.shopping_bag_outlined,
-                color: Colors.white,
+                color: appOnPrimary,
                 size: 24,
               ),
               const SizedBox(width: 6),
-              const Column(
+              Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(
-                    'Store',
-                    style: TextStyle(
+                    StoreI18n.text(MessageKeys.appStore),
+                    style: const TextStyle(
                       fontSize: 15,
                       fontWeight: FontWeight.bold,
-                      color: Colors.white,
+                      color: appOnPrimary,
                     ),
                   ),
                   Text(
-                    'By WeDoCode',
-                    style: TextStyle(fontSize: 10, color: Colors.white60),
+                    StoreI18n.text(MessageKeys.appByWedocode),
+                    style: TextStyle(fontSize: 10, color: appOnPrimary.withValues(alpha: 0.6)),
                   ),
                 ],
               ),
@@ -191,7 +194,7 @@ class _HeaderPanel extends StatelessWidget {
               // Right: cart button
               InkWell(
                 onTap: onOpenCart,
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: BorderRadius.circular(radiusSm),
                 child: Padding(
                   padding: const EdgeInsets.symmetric(
                     horizontal: 4,
@@ -202,17 +205,17 @@ class _HeaderPanel extends StatelessWidget {
                     children: [
                       const Icon(
                         Icons.shopping_bag_outlined,
-                        color: Colors.white,
+                        color: appOnPrimary,
                         size: 24,
                       ),
                       if (isExpanded) ...[
                         const SizedBox(width: 6),
-                        const Text(
-                          'Cart',
-                          style: TextStyle(
+                        Text(
+                          StoreI18n.text(MessageKeys.cartTitle),
+                          style: const TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.w500,
-                            color: Colors.white,
+                            color: appOnPrimary,
                           ),
                         ),
                       ],
@@ -223,7 +226,7 @@ class _HeaderPanel extends StatelessWidget {
                           vertical: 2,
                         ),
                         decoration: BoxDecoration(
-                          color: Colors.white,
+                          color: appOnPrimary,
                           borderRadius: BorderRadius.circular(10),
                           boxShadow: const [
                             BoxShadow(
@@ -273,7 +276,7 @@ class _TabNav extends StatelessWidget {
           Expanded(
             child: _TabButton(
               icon: Icons.grid_view,
-              label: 'Products',
+              label: StoreI18n.text(MessageKeys.homeProducts),
               active: showingProducts,
               onTap: () => onSwitch(true),
             ),
@@ -281,7 +284,7 @@ class _TabNav extends StatelessWidget {
           Expanded(
             child: _TabButton(
               icon: Icons.history,
-              label: 'History',
+              label: StoreI18n.text(MessageKeys.homeHistory),
               active: !showingProducts,
               onTap: () => onSwitch(false),
             ),

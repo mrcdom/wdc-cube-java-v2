@@ -1,6 +1,8 @@
 // Styles of the cart module.
 // Imported by cart-sel.ts; do not reference this file directly from the views.
 
+@use "../../../scss/generated/tokens" as *;
+
 .wdc-cart {
   &__empty-icon-box {
     width: 100px;
@@ -102,6 +104,6 @@
 
   &__remove-icon {
     font-size: 0.7rem;
-    color: #dc3545;
+    color: $color-error;
   }
 }

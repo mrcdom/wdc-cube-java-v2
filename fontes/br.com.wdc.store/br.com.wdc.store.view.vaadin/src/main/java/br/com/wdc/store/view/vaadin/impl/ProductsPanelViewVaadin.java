@@ -6,6 +6,7 @@ import java.util.function.BiConsumer;
 
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 
+import br.com.wdc.store.i18n.StoreMessages;
 import br.com.wdc.store.presentation.presenter.restricted.home.HomeScope.ProductsPanelScope;
 import br.com.wdc.store.presentation.presenter.restricted.products.structs.ProductInfo;
 import br.com.wdc.store.view.vaadin.AbstractViewVaadin;
@@ -46,7 +47,7 @@ public class ProductsPanelViewVaadin extends AbstractViewVaadin<ProductsPanelSco
         pane0.addClassName("products-panel");
 
         dom.h3(h -> {
-            h.setText("PRODUCTS");
+            h.setText(text(StoreMessages.HOME_PRODUCTS));
             h.getStyle().set("color", "var(--lumo-secondary-text-color)").set("margin", "0 0 12px 0");
         });
 

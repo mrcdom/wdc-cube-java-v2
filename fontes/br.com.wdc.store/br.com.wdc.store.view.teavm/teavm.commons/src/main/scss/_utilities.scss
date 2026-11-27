@@ -1,3 +1,5 @@
+@use "generated/tokens" as t;
+
 // =============================================================================
 // UTILITY CLASSES (SelUtility)
 // Shared utility selectors used by both teavm.web and remote.shell.teavm
@@ -229,8 +231,8 @@
 .bg-none { background: none; }
 .bg-transparent { background: transparent; }
 
-.bg-gradient-primary { background: linear-gradient(135deg, #0d66d0 0%, #1a8cff 100%); }
-.bg-gradient-primary-extended { background: linear-gradient(160deg, #0d66d0 0%, #1a8cff 40%, #4da6ff 100%); }
+.bg-gradient-primary { background: linear-gradient(135deg, t.$color-primary 0%, t.$color-accent 100%); }
+.bg-gradient-primary-extended { background: linear-gradient(160deg, t.$color-primary 0%, t.$color-accent 40%, t.$color-accent-soft 100%); }
 
 .bg-white-04 { background: rgba(255,255,255,0.04); }
 .bg-white-05 { background: rgba(255,255,255,0.05); }

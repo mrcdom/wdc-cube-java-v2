@@ -7,6 +7,7 @@ import br.com.wdc.framework.cube.Action;
 import br.com.wdc.framework.cube.ActionOf;
 import br.com.wdc.framework.cube.Prop;
 import br.com.wdc.framework.cube.Scope;
+import br.com.wdc.store.i18n.Message;
 import br.com.wdc.store.presentation.presenter.restricted.home.structs.PurchaseInfo;
 import br.com.wdc.store.presentation.presenter.restricted.products.structs.ProductInfo;
 
@@ -55,7 +56,7 @@ public class HomeScope extends Scope {
     public final Prop<String> nickName = prop();
     public final Prop<Integer> cartItemCount = prop(0);
     public final Prop<Integer> errorCode = prop(0);
-    public final Prop<String> errorMessage = prop();
+    public final Prop<Message> errorMessage = prop();
 
     public Action onOpenCart = Action.NOOP;
     public Action onExit = Action.NOOP;

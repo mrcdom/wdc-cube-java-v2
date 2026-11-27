@@ -1,3 +1,5 @@
+@use "generated/tokens" as t;
+
 // =============================================================================
 // PRODUCTS PANEL COMPONENTS
 // =============================================================================
@@ -11,7 +13,7 @@
 }
 
 .products-card-image-wrap {
-    background: linear-gradient(180deg, #f8fafc 0%, #eef2f7 100%);
+    background: linear-gradient(180deg, t.$color-surface-muted 0%, t.$color-surface-subtle 100%);
     padding: 20px;
     display: flex;
     align-items: center;

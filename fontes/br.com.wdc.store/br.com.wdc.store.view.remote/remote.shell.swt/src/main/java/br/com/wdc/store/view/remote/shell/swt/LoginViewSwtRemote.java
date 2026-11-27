@@ -30,7 +30,7 @@ class LoginViewSwtRemote extends LoginViewSwt {
 		}
 		var scope = new LoginScope();
 		scope.userName.set(s.getString("userName"));
-		scope.errorMessage.set(s.getString("errorMessage"));
+		scope.errorMessage.set(WireMessages.messageOf(s, "errorMessage"));
 		var code = s.getLong("errorCode");
 		scope.errorCode.set(code != null ? code.intValue() : 0);
 		scope.loading.set(Boolean.TRUE.equals(s.getBoolean("loading")));
