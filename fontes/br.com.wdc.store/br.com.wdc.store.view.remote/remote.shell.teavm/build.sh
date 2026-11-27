@@ -23,4 +23,8 @@ JAVA_HOME=$JAVA25_HOME mvn -f "$COMMONS_DIR/pom.xml" clean install -DskipTests -
 rm -f "$DEPLOY_DIR/index.html"
 JAVA_HOME=$JAVA25_HOME mvn clean process-classes -DskipTests
 
+# The Spectrum Web Components, bundled into one file next to app.js (js/swc-elements.js)
+npm ci --no-audit --no-fund --loglevel=error
+npm run --silent build:swc
+
 echo "Deploy complete: $DEPLOY_DIR"

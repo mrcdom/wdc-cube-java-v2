@@ -57,7 +57,7 @@ graph TD
     buildsh["build.sh<br/><small>Module build (TeaVM → JS)</small>"]
     watchsh["watch.sh<br/><small>Automatic rebuild on detected changes</small>"]
     pom["pom.xml<br/><small>Maven + TeaVM and Sass plugins</small>"]
-    pkg["package.json<br/><small>Builds and tests js/crypto-compat.js (npm)</small>"]
+    pkg["package.json<br/><small>Builds js/crypto-compat.js and js/swc-elements.js (npm, esbuild)</small>"]
     docs["docs/<br/><small>GUIDE_NEW_VIEW.md, screenshots</small>"]
     srcMain["src/main/"]
     java["java/.../shell/teavm/"]
@@ -66,7 +66,7 @@ graph TD
     arv["AbstractRemoteView.java<br/><small>VDom base (render/diff/useCallback, scope/submit/setFormField)</small>"]
     views["views/<br/><small>BrowserView · RootView · LoginView · HomeView · ProductsPanelView<br/>PurchasesPanelView · ProductView · CartView · CartItemView · ReceiptView</small>"]
     scss["scss/<br/><small>app.scss (+ browser/_browser.scss)</small>"]
-    jsSrc["js/<br/><small>crypto-compat.mjs (crypto fallback source)</small>"]
+    jsSrc["js/<br/><small>crypto-compat.mjs (crypto fallback source), swc-elements.mjs (the Spectrum Web Components)</small>"]
     webapp["webapp/<br/><small>index.html, context.html, css/app.css (generated), js/crypto-compat.js (built, committed)</small>"]
     srcTest["src/test/js/<br/><small>crypto-compat.test.mjs</small>"]
 
@@ -188,6 +188,7 @@ graph TD
     js["js/"]
     appJs["app.js<br/><small>Java compiled to JavaScript</small>"]
     compatJs["crypto-compat.js<br/><small>Crypto fallback for plain HTTP</small>"]
+    swcJs["swc-elements.js<br/><small>The Spectrum Web Components, one self-contained file (build.sh: npm run build:swc)</small>"]
 
     root --> index
     root --> context
@@ -195,6 +196,7 @@ graph TD
     root --> js
     js --> appJs
     js --> compatJs
+    js --> swcJs
 ```
 
 ### Crypto fallback (plain HTTP)

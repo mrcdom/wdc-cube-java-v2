@@ -1,16 +1,18 @@
 {
   "name": "remote.shell.teavm-crypto-compat",
   "private": true,
-  "description": "Builds js/crypto-compat.js, the crypto fallback the TeaVM remote bridge uses where crypto.subtle does not exist",
+  "description": "Builds the JavaScript the TeaVM remote shell loads besides app.js: js/crypto-compat.js (the crypto fallback where crypto.subtle does not exist) and js/swc-elements.js (the Spectrum Web Components, one self-contained file)",
   "type": "module",
   "scripts": {
     "build:crypto-compat": "esbuild src/main/js/crypto-compat.mjs --bundle --format=iife --minify --outfile=src/main/webapp/js/crypto-compat.js",
-    "test:crypto-compat": "node src/test/js/crypto-compat.test.mjs"
+    "test:crypto-compat": "node src/test/js/crypto-compat.test.mjs",
+    "build:swc": "esbuild src/main/js/swc-elements.mjs --bundle --format=esm --minify --outfile=../../../../work/frontend/remote.shell.teavm/js/swc-elements.js"
   },
   "devDependencies": {
     "@noble/ciphers": "1.3.0",
     "@noble/curves": "1.9.7",
     "@noble/hashes": "1.8.0",
+    "@spectrum-web-components/bundle": "0.40.1",
     "esbuild": "0.25.9"
   }
 }
