@@ -1,0 +1,2496 @@
+{
+  "openapi" : "3.0.1",
+  "info" : {
+    "title" : "WDC Store — Repository API",
+    "description" : "CRUD and query endpoints for the WDC Store data model.\n\n**Authentication**: write operations require a Bearer JWT.\nObtain tokens via `POST /api/auth/login` after requesting a\nchallenge nonce from `GET /api/auth/challenge`.\n\n**Projection**: fetch operations accept an optional `projection`\nfield containing a partial entity — only the specified fields are\nreturned in the response.\n\n**Criteria**: each filterable field is sent as a `Criterion` object\ncarrying one or more comparison requests — see the `Criterion`\nschema. Requests on the same field combine with `AND` unless the\nfield sets `\"or\": true`; different fields always combine with `AND`.\n\n**Projected collections**: a one-to-many field in a *projection*\nis an object (`ProjectedCollection`) declaring the item shape plus\nthe criteria, ordering and slice to apply to the collection. In a\n*response* the same field is the plain array of rows.\n",
+    "contact" : {
+      "name" : "WeDoCode"
+    },
+    "version" : "1.0.0"
+  },
+  "tags" : [ {
+    "name" : "auth",
+    "description" : "Challenge-response authentication — login, refresh, logout"
+  }, {
+    "name" : "product",
+    "description" : "Products"
+  }, {
+    "name" : "user",
+    "description" : "Users"
+  }, {
+    "name" : "purchase",
+    "description" : "Purchases"
+  }, {
+    "name" : "purchase-item",
+    "description" : "Purchase line items"
+  } ],
+  "paths" : {
+    "/api/api/auth/challenge" : {
+      "post" : {
+        "tags" : [ "auth" ],
+        "summary" : "Start a user's SCRAM-SHA-256 sign-in: a nonce, the salt and the iterations",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/ChallengeRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ChallengeResponse"
+                }
+              }
+            }
+          },
+          "429" : {
+            "description" : "Too Many Requests — wait the seconds in the Retry-After header (and in retryAfter) before trying again",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/api/auth/login" : {
+      "post" : {
+        "tags" : [ "auth" ],
+        "summary" : "End the sign-in with the client's SCRAM proof",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/LoginRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/TokenResponse"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Unauthorized — invalid or expired token",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429" : {
+            "description" : "Too Many Requests — wait the seconds in the Retry-After header (and in retryAfter) before trying again",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/api/auth/refresh" : {
+      "post" : {
+        "tags" : [ "auth" ],
+        "summary" : "Refresh the access token using a refresh token",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/RefreshRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/TokenResponse"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Unauthorized — invalid or expired token",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429" : {
+            "description" : "Too Many Requests — wait the seconds in the Retry-After header (and in retryAfter) before trying again",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/api/auth/logout" : {
+      "post" : {
+        "tags" : [ "auth" ],
+        "summary" : "Revoke the session (invalidate the refresh token)",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/RefreshRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/MutationResult"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Unauthorized — invalid or expired token",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/api/repo/product/insert" : {
+      "post" : {
+        "tags" : [ "product" ],
+        "summary" : "Insert a product",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/Product"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "201" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/InsertResult"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Unauthorized — invalid or expired token",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403" : {
+            "description" : "Forbidden — the requester's roles do not allow the request; the message names the fields at fault",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security" : [ {
+          "bearerAuth" : [ ]
+        } ]
+      }
+    },
+    "/api/api/repo/product/update" : {
+      "post" : {
+        "tags" : [ "product" ],
+        "summary" : "Update a product",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/Product"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/MutationResult"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Unauthorized — invalid or expired token",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403" : {
+            "description" : "Forbidden — the requester's roles do not allow the request; the message names the fields at fault",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security" : [ {
+          "bearerAuth" : [ ]
+        } ]
+      }
+    },
+    "/api/api/repo/product/delete" : {
+      "post" : {
+        "tags" : [ "product" ],
+        "summary" : "Delete products matching criteria",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/ProductFetchRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CountResult"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Unauthorized — invalid or expired token",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403" : {
+            "description" : "Forbidden — the requester's roles do not allow the request; the message names the fields at fault",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security" : [ {
+          "bearerAuth" : [ ]
+        } ]
+      }
+    },
+    "/api/api/repo/product/count" : {
+      "post" : {
+        "tags" : [ "product" ],
+        "summary" : "Count products matching criteria",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/ProductFetchRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CountResult"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Unauthorized — invalid or expired token",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security" : [ {
+          "bearerAuth" : [ ]
+        } ]
+      }
+    },
+    "/api/api/repo/product/fetch" : {
+      "post" : {
+        "tags" : [ "product" ],
+        "summary" : "Fetch products matching criteria (offset/limit)",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/ProductFetchRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProductFetchResponse"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Unauthorized — invalid or expired token",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security" : [ {
+          "bearerAuth" : [ ]
+        } ]
+      }
+    },
+    "/api/api/repo/product/fetch-page" : {
+      "post" : {
+        "tags" : [ "product" ],
+        "summary" : "Fetch products matching criteria (page/pageSize)",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/ProductPageRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProductPageResponse"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Unauthorized — invalid or expired token",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security" : [ {
+          "bearerAuth" : [ ]
+        } ]
+      }
+    },
+    "/api/api/repo/product/{id}" : {
+      "get" : {
+        "tags" : [ "product" ],
+        "summary" : "Fetch a product by ID (GET)",
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Product"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Unauthorized — invalid or expired token",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Not found",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security" : [ {
+          "bearerAuth" : [ ]
+        } ]
+      }
+    },
+    "/api/api/repo/product/fetch-by-id" : {
+      "post" : {
+        "tags" : [ "product" ],
+        "summary" : "Fetch a product by ID (POST, supports projection)",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/FetchByIdRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Product"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Unauthorized — invalid or expired token",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Not found",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security" : [ {
+          "bearerAuth" : [ ]
+        } ]
+      }
+    },
+    "/api/api/repo/product/{id}/image" : {
+      "get" : {
+        "tags" : [ "product" ],
+        "summary" : "Get the product image",
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Product image (PNG)",
+            "content" : {
+              "image/png" : {
+                "schema" : {
+                  "type" : "string",
+                  "format" : "binary"
+                }
+              }
+            }
+          },
+          "204" : {
+            "description" : "No content — image not set"
+          }
+        }
+      },
+      "put" : {
+        "tags" : [ "product" ],
+        "summary" : "Upload or replace the product image",
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/octet-stream" : {
+              "schema" : {
+                "type" : "string",
+                "format" : "binary"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/MutationResult"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Unauthorized — invalid or expired token",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403" : {
+            "description" : "Forbidden — the requester's roles do not allow the request; the message names the fields at fault",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security" : [ {
+          "bearerAuth" : [ ]
+        } ]
+      }
+    },
+    "/api/api/repo/user/insert" : {
+      "post" : {
+        "tags" : [ "user" ],
+        "summary" : "Insert a user",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/User"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "201" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/InsertResult"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Unauthorized — invalid or expired token",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403" : {
+            "description" : "Forbidden — the requester's roles do not allow the request; the message names the fields at fault",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security" : [ {
+          "bearerAuth" : [ ]
+        } ]
+      }
+    },
+    "/api/api/repo/user/update" : {
+      "post" : {
+        "tags" : [ "user" ],
+        "summary" : "Update a user",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/User"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/MutationResult"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Unauthorized — invalid or expired token",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403" : {
+            "description" : "Forbidden — the requester's roles do not allow the request; the message names the fields at fault",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security" : [ {
+          "bearerAuth" : [ ]
+        } ]
+      }
+    },
+    "/api/api/repo/user/delete" : {
+      "post" : {
+        "tags" : [ "user" ],
+        "summary" : "Delete users matching criteria",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/UserFetchRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CountResult"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Unauthorized — invalid or expired token",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403" : {
+            "description" : "Forbidden — the requester's roles do not allow the request; the message names the fields at fault",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security" : [ {
+          "bearerAuth" : [ ]
+        } ]
+      }
+    },
+    "/api/api/repo/user/count" : {
+      "post" : {
+        "tags" : [ "user" ],
+        "summary" : "Count users matching criteria",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/UserFetchRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CountResult"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Unauthorized — invalid or expired token",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security" : [ {
+          "bearerAuth" : [ ]
+        } ]
+      }
+    },
+    "/api/api/repo/user/fetch" : {
+      "post" : {
+        "tags" : [ "user" ],
+        "summary" : "Fetch users matching criteria (offset/limit)",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/UserFetchRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/UserFetchResponse"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Unauthorized — invalid or expired token",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security" : [ {
+          "bearerAuth" : [ ]
+        } ]
+      }
+    },
+    "/api/api/repo/user/fetch-page" : {
+      "post" : {
+        "tags" : [ "user" ],
+        "summary" : "Fetch users matching criteria (page/pageSize)",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/UserPageRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/UserPageResponse"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Unauthorized — invalid or expired token",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security" : [ {
+          "bearerAuth" : [ ]
+        } ]
+      }
+    },
+    "/api/api/repo/user/{id}" : {
+      "get" : {
+        "tags" : [ "user" ],
+        "summary" : "Fetch a user by ID (GET)",
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/User"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Unauthorized — invalid or expired token",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Not found",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security" : [ {
+          "bearerAuth" : [ ]
+        } ]
+      }
+    },
+    "/api/api/repo/user/fetch-by-id" : {
+      "post" : {
+        "tags" : [ "user" ],
+        "summary" : "Fetch a user by ID (POST, supports projection)",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/FetchByIdRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/User"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Unauthorized — invalid or expired token",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Not found",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security" : [ {
+          "bearerAuth" : [ ]
+        } ]
+      }
+    },
+    "/api/api/repo/purchase/insert" : {
+      "post" : {
+        "tags" : [ "purchase" ],
+        "summary" : "Insert a purchase",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/Purchase"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "201" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/InsertResult"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Unauthorized — invalid or expired token",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403" : {
+            "description" : "Forbidden — the requester's roles do not allow the request; the message names the fields at fault",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security" : [ {
+          "bearerAuth" : [ ]
+        } ]
+      }
+    },
+    "/api/api/repo/purchase/update" : {
+      "post" : {
+        "tags" : [ "purchase" ],
+        "summary" : "Update a purchase",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/Purchase"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/MutationResult"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Unauthorized — invalid or expired token",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403" : {
+            "description" : "Forbidden — the requester's roles do not allow the request; the message names the fields at fault",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security" : [ {
+          "bearerAuth" : [ ]
+        } ]
+      }
+    },
+    "/api/api/repo/purchase/delete" : {
+      "post" : {
+        "tags" : [ "purchase" ],
+        "summary" : "Delete purchases matching criteria",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/PurchaseFetchRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CountResult"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Unauthorized — invalid or expired token",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403" : {
+            "description" : "Forbidden — the requester's roles do not allow the request; the message names the fields at fault",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security" : [ {
+          "bearerAuth" : [ ]
+        } ]
+      }
+    },
+    "/api/api/repo/purchase/count" : {
+      "post" : {
+        "tags" : [ "purchase" ],
+        "summary" : "Count purchases matching criteria",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/PurchaseFetchRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CountResult"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Unauthorized — invalid or expired token",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security" : [ {
+          "bearerAuth" : [ ]
+        } ]
+      }
+    },
+    "/api/api/repo/purchase/fetch" : {
+      "post" : {
+        "tags" : [ "purchase" ],
+        "summary" : "Fetch purchases matching criteria (offset/limit)",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/PurchaseFetchRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/PurchaseFetchResponse"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Unauthorized — invalid or expired token",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security" : [ {
+          "bearerAuth" : [ ]
+        } ]
+      }
+    },
+    "/api/api/repo/purchase/fetch-page" : {
+      "post" : {
+        "tags" : [ "purchase" ],
+        "summary" : "Fetch purchases matching criteria (page/pageSize)",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/PurchasePageRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/PurchasePageResponse"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Unauthorized — invalid or expired token",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security" : [ {
+          "bearerAuth" : [ ]
+        } ]
+      }
+    },
+    "/api/api/repo/purchase/{id}" : {
+      "get" : {
+        "tags" : [ "purchase" ],
+        "summary" : "Fetch a purchase by ID (GET)",
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Purchase"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Unauthorized — invalid or expired token",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Not found",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security" : [ {
+          "bearerAuth" : [ ]
+        } ]
+      }
+    },
+    "/api/api/repo/purchase/fetch-by-id" : {
+      "post" : {
+        "tags" : [ "purchase" ],
+        "summary" : "Fetch a purchase by ID (POST, supports projection)",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/FetchByIdRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Purchase"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Unauthorized — invalid or expired token",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Not found",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security" : [ {
+          "bearerAuth" : [ ]
+        } ]
+      }
+    },
+    "/api/api/repo/purchase-item/insert" : {
+      "post" : {
+        "tags" : [ "purchase-item" ],
+        "summary" : "Insert a purchase item",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/PurchaseItem"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "201" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/InsertResult"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Unauthorized — invalid or expired token",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403" : {
+            "description" : "Forbidden — the requester's roles do not allow the request; the message names the fields at fault",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security" : [ {
+          "bearerAuth" : [ ]
+        } ]
+      }
+    },
+    "/api/api/repo/purchase-item/update" : {
+      "post" : {
+        "tags" : [ "purchase-item" ],
+        "summary" : "Update a purchase item",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/PurchaseItem"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/MutationResult"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Unauthorized — invalid or expired token",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403" : {
+            "description" : "Forbidden — the requester's roles do not allow the request; the message names the fields at fault",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security" : [ {
+          "bearerAuth" : [ ]
+        } ]
+      }
+    },
+    "/api/api/repo/purchase-item/delete" : {
+      "post" : {
+        "tags" : [ "purchase-item" ],
+        "summary" : "Delete purchase items matching criteria",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/PurchaseItemFetchRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CountResult"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Unauthorized — invalid or expired token",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403" : {
+            "description" : "Forbidden — the requester's roles do not allow the request; the message names the fields at fault",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security" : [ {
+          "bearerAuth" : [ ]
+        } ]
+      }
+    },
+    "/api/api/repo/purchase-item/count" : {
+      "post" : {
+        "tags" : [ "purchase-item" ],
+        "summary" : "Count purchase items matching criteria",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/PurchaseItemFetchRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CountResult"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Unauthorized — invalid or expired token",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security" : [ {
+          "bearerAuth" : [ ]
+        } ]
+      }
+    },
+    "/api/api/repo/purchase-item/fetch" : {
+      "post" : {
+        "tags" : [ "purchase-item" ],
+        "summary" : "Fetch purchase items matching criteria (offset/limit)",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/PurchaseItemFetchRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/PurchaseItemFetchResponse"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Unauthorized — invalid or expired token",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security" : [ {
+          "bearerAuth" : [ ]
+        } ]
+      }
+    },
+    "/api/api/repo/purchase-item/fetch-page" : {
+      "post" : {
+        "tags" : [ "purchase-item" ],
+        "summary" : "Fetch purchase items matching criteria (page/pageSize)",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/PurchaseItemPageRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/PurchaseItemPageResponse"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Unauthorized — invalid or expired token",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security" : [ {
+          "bearerAuth" : [ ]
+        } ]
+      }
+    },
+    "/api/api/repo/purchase-item/{id}" : {
+      "get" : {
+        "tags" : [ "purchase-item" ],
+        "summary" : "Fetch a purchase item by ID (GET)",
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/PurchaseItem"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Unauthorized — invalid or expired token",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Not found",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security" : [ {
+          "bearerAuth" : [ ]
+        } ]
+      }
+    },
+    "/api/api/repo/purchase-item/fetch-by-id" : {
+      "post" : {
+        "tags" : [ "purchase-item" ],
+        "summary" : "Fetch a purchase item by ID (POST, supports projection)",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/FetchByIdRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/PurchaseItem"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Unauthorized — invalid or expired token",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Not found",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security" : [ {
+          "bearerAuth" : [ ]
+        } ]
+      }
+    }
+  },
+  "components" : {
+    "schemas" : {
+      "ErrorResponse" : {
+        "required" : [ "error" ],
+        "type" : "object",
+        "properties" : {
+          "error" : {
+            "type" : "string",
+            "description" : "Human-readable error message"
+          },
+          "retryAfter" : {
+            "type" : "integer",
+            "description" : "On a 429: the seconds to wait before trying again, as in the Retry-After header",
+            "format" : "int64"
+          }
+        },
+        "description" : "Error response body"
+      },
+      "InsertResult" : {
+        "required" : [ "id", "success" ],
+        "type" : "object",
+        "properties" : {
+          "success" : {
+            "type" : "boolean"
+          },
+          "id" : {
+            "type" : "integer",
+            "description" : "Generated entity ID",
+            "format" : "int64"
+          }
+        },
+        "description" : "Result of an insert operation"
+      },
+      "MutationResult" : {
+        "required" : [ "success" ],
+        "type" : "object",
+        "properties" : {
+          "success" : {
+            "type" : "boolean"
+          }
+        },
+        "description" : "Result of an update operation"
+      },
+      "CountResult" : {
+        "required" : [ "count" ],
+        "type" : "object",
+        "properties" : {
+          "count" : {
+            "type" : "integer",
+            "description" : "Number of affected or matching rows",
+            "format" : "int32"
+          }
+        },
+        "description" : "Result of a delete or count operation"
+      },
+      "CriterionPredicate" : {
+        "required" : [ "o" ],
+        "type" : "object",
+        "properties" : {
+          "o" : {
+            "type" : "string",
+            "description" : "Operator",
+            "enum" : [ "EQ", "NE", "GT", "GE", "LT", "LE", "LIKE", "ILIKE", "BETWEEN", "IN", "IS_NULL", "IS_NOT_NULL" ]
+          },
+          "v" : {
+            "type" : "array",
+            "description" : "Values for the operator — one for EQ/NE/GT/GE/LT/LE/LIKE/ILIKE, two for BETWEEN, many for IN, omitted for IS_NULL/IS_NOT_NULL. LIKE and ILIKE take the wildcards as part of the value, as in SQL.",
+            "items" : { }
+          }
+        },
+        "description" : "A single comparison request within a criterion."
+      },
+      "Criterion" : {
+        "type" : "object",
+        "properties" : {
+          "or" : {
+            "type" : "boolean",
+            "description" : "Combine this field's requests with OR instead of AND. Defaults to false.",
+            "default" : false
+          },
+          "p" : {
+            "type" : "array",
+            "description" : "The comparison requests, in the order they were made",
+            "items" : {
+              "$ref" : "#/components/schemas/CriterionPredicate"
+            }
+          }
+        },
+        "description" : "A filterable field. Every criteria field of every entity uses this shape — pass it alongside the pagination parameters, keyed by the field name (`productId`, `userName`, …).\n\nRequests accumulate: `{\"p\":[{\"o\":\"GE\",\"v\":[10]},{\"o\":\"LE\",\"v\":[20]}]}` means a range. They combine with `AND` unless `or` is true. A bare value is also accepted and read as equality."
+      },
+      "ProjectedCollection" : {
+        "required" : [ "shape" ],
+        "type" : "object",
+        "properties" : {
+          "shape" : {
+            "type" : "object",
+            "description" : "One partial item declaring which fields of each row to return"
+          },
+          "where" : {
+            "type" : "object",
+            "description" : "Criteria for the child entity — same shape as a top-level criteria object, with `Criterion` fields plus an optional `orderBy`."
+          },
+          "limit" : {
+            "minimum" : 0,
+            "type" : "integer",
+            "description" : "Maximum child rows to return. Order the collection too, or the cut is arbitrary.",
+            "format" : "int32"
+          },
+          "offset" : {
+            "minimum" : 0,
+            "type" : "integer",
+            "description" : "Child rows to skip. Order the collection too, or the skip is arbitrary.",
+            "format" : "int32"
+          }
+        },
+        "description" : "A one-to-many field inside a projection. Declares the shape of one item plus the criteria, ordering and slice to apply to the collection.\n\nIn a **response** the same field is the plain array of rows instead — the two are told apart by their JSON type."
+      },
+      "FetchRequest" : {
+        "type" : "object",
+        "properties" : {
+          "offset" : {
+            "minimum" : 0,
+            "type" : "integer",
+            "description" : "Zero-based row offset",
+            "format" : "int32"
+          },
+          "limit" : {
+            "minimum" : 0,
+            "type" : "integer",
+            "description" : "Maximum rows to return — 0 means unlimited",
+            "format" : "int32"
+          },
+          "projection" : {
+            "type" : "object",
+            "description" : "Partial entity declaring which fields to include in the response"
+          }
+        },
+        "description" : "Common query parameters. Each entity's criteria fields and `orderBy` are in its own schema — `ProductCriteria`, `UserCriteria`, `PurchaseCriteria`, `PurchaseItemCriteria` — and the accepted body is the union of both."
+      },
+      "PageRequest" : {
+        "type" : "object",
+        "properties" : {
+          "page" : {
+            "minimum" : 0,
+            "type" : "integer",
+            "description" : "Zero-based page index",
+            "format" : "int32"
+          },
+          "pageSize" : {
+            "minimum" : 1,
+            "type" : "integer",
+            "description" : "Rows per page",
+            "format" : "int32"
+          },
+          "projection" : {
+            "type" : "object",
+            "description" : "Partial entity declaring which fields to include in the response"
+          }
+        },
+        "description" : "Common parameters of a paginated query. Each entity's criteria fields and `orderBy` are in its own schema, and the accepted body is the union of both."
+      },
+      "FetchByIdRequest" : {
+        "required" : [ "id" ],
+        "type" : "object",
+        "properties" : {
+          "id" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "projection" : {
+            "type" : "object"
+          }
+        },
+        "description" : "Fetch a single entity by ID, optionally narrowing the returned fields with a projection."
+      },
+      "ProductCriteria" : {
+        "type" : "object",
+        "properties" : {
+          "productId" : {
+            "description" : "Comparable — also accepts GT, GE, LT, LE and BETWEEN.",
+            "allOf" : [ {
+              "$ref" : "#/components/schemas/Criterion"
+            } ]
+          },
+          "name" : {
+            "description" : "Text — also accepts LIKE and ILIKE, besides the ordering comparisons.",
+            "allOf" : [ {
+              "$ref" : "#/components/schemas/Criterion"
+            } ]
+          },
+          "price" : {
+            "description" : "Comparable — also accepts GT, GE, LT, LE and BETWEEN.",
+            "allOf" : [ {
+              "$ref" : "#/components/schemas/Criterion"
+            } ]
+          },
+          "description" : {
+            "description" : "Text — also accepts LIKE and ILIKE, besides the ordering comparisons.",
+            "allOf" : [ {
+              "$ref" : "#/components/schemas/Criterion"
+            } ]
+          },
+          "orderBy" : {
+            "type" : "string",
+            "description" : "Provisioned ordering. Each value is a complete ordering whose name states the resulting effect — not a field with a direction. When omitted, the order is up to the database.",
+            "enum" : [ "OLDEST_FIRST", "NEWEST_FIRST", "NAME_A_TO_Z", "CHEAPEST_FIRST", "MOST_EXPENSIVE_FIRST" ]
+          }
+        },
+        "description" : "Criteria fields for Product. Each one is a `Criterion` — an object with the comparison requests — and different fields combine with `AND`. Send them alongside the pagination parameters."
+      },
+      "UserCriteria" : {
+        "type" : "object",
+        "properties" : {
+          "userId" : {
+            "description" : "Comparable — also accepts GT, GE, LT, LE and BETWEEN.",
+            "allOf" : [ {
+              "$ref" : "#/components/schemas/Criterion"
+            } ]
+          },
+          "userName" : {
+            "description" : "Text — also accepts LIKE and ILIKE, besides the ordering comparisons.",
+            "allOf" : [ {
+              "$ref" : "#/components/schemas/Criterion"
+            } ]
+          },
+          "name" : {
+            "description" : "Text — also accepts LIKE and ILIKE, besides the ordering comparisons.",
+            "allOf" : [ {
+              "$ref" : "#/components/schemas/Criterion"
+            } ]
+          },
+          "roles" : {
+            "description" : "Text — also accepts LIKE and ILIKE, besides the ordering comparisons.",
+            "allOf" : [ {
+              "$ref" : "#/components/schemas/Criterion"
+            } ]
+          },
+          "orderBy" : {
+            "type" : "string",
+            "description" : "Provisioned ordering. Each value is a complete ordering whose name states the resulting effect — not a field with a direction. When omitted, the order is up to the database.",
+            "enum" : [ "OLDEST_FIRST", "NEWEST_FIRST", "NAME_A_TO_Z", "LOGIN_A_TO_Z" ]
+          }
+        },
+        "description" : "Criteria fields for User. Each one is a `Criterion` — an object with the comparison requests — and different fields combine with `AND`. Send them alongside the pagination parameters."
+      },
+      "PurchaseCriteria" : {
+        "type" : "object",
+        "properties" : {
+          "purchaseId" : {
+            "description" : "Comparable — also accepts GT, GE, LT, LE and BETWEEN.",
+            "allOf" : [ {
+              "$ref" : "#/components/schemas/Criterion"
+            } ]
+          },
+          "userId" : {
+            "description" : "Comparable — also accepts GT, GE, LT, LE and BETWEEN.",
+            "allOf" : [ {
+              "$ref" : "#/components/schemas/Criterion"
+            } ]
+          },
+          "buyDate" : {
+            "description" : "Comparable — also accepts GT, GE, LT, LE and BETWEEN.",
+            "allOf" : [ {
+              "$ref" : "#/components/schemas/Criterion"
+            } ]
+          },
+          "productId" : {
+            "description" : "Comparable — also accepts GT, GE, LT, LE and BETWEEN.",
+            "allOf" : [ {
+              "$ref" : "#/components/schemas/Criterion"
+            } ]
+          },
+          "orderBy" : {
+            "type" : "string",
+            "description" : "Provisioned ordering. Each value is a complete ordering whose name states the resulting effect — not a field with a direction. When omitted, the order is up to the database.",
+            "enum" : [ "OLDEST_FIRST", "NEWEST_FIRST", "MOST_RECENT_PURCHASE_FIRST", "EARLIEST_PURCHASE_FIRST" ]
+          }
+        },
+        "description" : "Criteria fields for Purchase. Each one is a `Criterion` — an object with the comparison requests — and different fields combine with `AND`. Send them alongside the pagination parameters."
+      },
+      "PurchaseItemCriteria" : {
+        "type" : "object",
+        "properties" : {
+          "purchaseItemId" : {
+            "description" : "Comparable — also accepts GT, GE, LT, LE and BETWEEN.",
+            "allOf" : [ {
+              "$ref" : "#/components/schemas/Criterion"
+            } ]
+          },
+          "purchaseId" : {
+            "description" : "Comparable — also accepts GT, GE, LT, LE and BETWEEN.",
+            "allOf" : [ {
+              "$ref" : "#/components/schemas/Criterion"
+            } ]
+          },
+          "productId" : {
+            "description" : "Comparable — also accepts GT, GE, LT, LE and BETWEEN.",
+            "allOf" : [ {
+              "$ref" : "#/components/schemas/Criterion"
+            } ]
+          },
+          "amount" : {
+            "description" : "Comparable — also accepts GT, GE, LT, LE and BETWEEN.",
+            "allOf" : [ {
+              "$ref" : "#/components/schemas/Criterion"
+            } ]
+          },
+          "price" : {
+            "description" : "Comparable — also accepts GT, GE, LT, LE and BETWEEN.",
+            "allOf" : [ {
+              "$ref" : "#/components/schemas/Criterion"
+            } ]
+          },
+          "userId" : {
+            "description" : "Comparable — also accepts GT, GE, LT, LE and BETWEEN.",
+            "allOf" : [ {
+              "$ref" : "#/components/schemas/Criterion"
+            } ]
+          },
+          "orderBy" : {
+            "type" : "string",
+            "description" : "Provisioned ordering. Each value is a complete ordering whose name states the resulting effect — not a field with a direction. When omitted, the order is up to the database.",
+            "enum" : [ "OLDEST_FIRST", "NEWEST_FIRST", "MOST_EXPENSIVE_FIRST", "LARGEST_QUANTITY_FIRST" ]
+          }
+        },
+        "description" : "Criteria fields for PurchaseItem. Each one is a `Criterion` — an object with the comparison requests — and different fields combine with `AND`. Send them alongside the pagination parameters."
+      },
+      "ProductFetchRequest" : {
+        "allOf" : [ {
+          "$ref" : "#/components/schemas/FetchRequest"
+        }, {
+          "$ref" : "#/components/schemas/ProductCriteria"
+        } ]
+      },
+      "ProductPageRequest" : {
+        "allOf" : [ {
+          "$ref" : "#/components/schemas/PageRequest"
+        }, {
+          "$ref" : "#/components/schemas/ProductCriteria"
+        } ]
+      },
+      "UserFetchRequest" : {
+        "allOf" : [ {
+          "$ref" : "#/components/schemas/FetchRequest"
+        }, {
+          "$ref" : "#/components/schemas/UserCriteria"
+        } ]
+      },
+      "UserPageRequest" : {
+        "allOf" : [ {
+          "$ref" : "#/components/schemas/PageRequest"
+        }, {
+          "$ref" : "#/components/schemas/UserCriteria"
+        } ]
+      },
+      "PurchaseFetchRequest" : {
+        "allOf" : [ {
+          "$ref" : "#/components/schemas/FetchRequest"
+        }, {
+          "$ref" : "#/components/schemas/PurchaseCriteria"
+        } ]
+      },
+      "PurchasePageRequest" : {
+        "allOf" : [ {
+          "$ref" : "#/components/schemas/PageRequest"
+        }, {
+          "$ref" : "#/components/schemas/PurchaseCriteria"
+        } ]
+      },
+      "PurchaseItemFetchRequest" : {
+        "allOf" : [ {
+          "$ref" : "#/components/schemas/FetchRequest"
+        }, {
+          "$ref" : "#/components/schemas/PurchaseItemCriteria"
+        } ]
+      },
+      "PurchaseItemPageRequest" : {
+        "allOf" : [ {
+          "$ref" : "#/components/schemas/PageRequest"
+        }, {
+          "$ref" : "#/components/schemas/PurchaseItemCriteria"
+        } ]
+      },
+      "ChallengeRequest" : {
+        "required" : [ "userName" ],
+        "type" : "object",
+        "properties" : {
+          "userName" : {
+            "type" : "string"
+          }
+        },
+        "description" : "Starts a user's SCRAM-SHA-256 sign-in"
+      },
+      "ChallengeResponse" : {
+        "required" : [ "expiresAt", "iterations", "nonce", "salt" ],
+        "type" : "object",
+        "properties" : {
+          "nonce" : {
+            "type" : "string",
+            "description" : "Single-use nonce, good for this user only"
+          },
+          "salt" : {
+            "type" : "string",
+            "description" : "Salt of the user's verifier (Base64)",
+            "format" : "byte"
+          },
+          "iterations" : {
+            "type" : "integer",
+            "description" : "PBKDF2 iterations of the verifier",
+            "format" : "int32"
+          },
+          "expiresAt" : {
+            "type" : "string",
+            "description" : "Nonce expiry",
+            "format" : "date-time"
+          }
+        },
+        "description" : "SCRAM-SHA-256 challenge. An unknown user gets made-up parameters, the same every time."
+      },
+      "LoginRequest" : {
+        "required" : [ "nonce", "proof", "userName" ],
+        "type" : "object",
+        "properties" : {
+          "userName" : {
+            "type" : "string"
+          },
+          "proof" : {
+            "type" : "string",
+            "description" : "The client's SCRAM proof (Base64)",
+            "format" : "byte"
+          },
+          "nonce" : {
+            "type" : "string",
+            "description" : "Nonce from POST /api/auth/challenge for this userName"
+          }
+        },
+        "description" : "SCRAM-SHA-256 sign-in. SaltedPassword = PBKDF2-HMAC-SHA256(digest, salt, iterations), where digest is MD5(password) as a signed integer in base 36; ClientKey = HMAC(SaltedPassword, \"Client Key\"); proof = ClientKey XOR HMAC(SHA-256(ClientKey), \"n=<userName>,r=<nonce>\")."
+      },
+      "TokenResponse" : {
+        "required" : [ "accessToken", "expiresAt", "refreshToken", "userId" ],
+        "type" : "object",
+        "properties" : {
+          "userId" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "accessToken" : {
+            "type" : "string"
+          },
+          "refreshToken" : {
+            "type" : "string"
+          },
+          "expiresAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "publicKey" : {
+            "type" : "string",
+            "description" : "The session's RSA public key (Base64 SPKI): encrypts a password sent to the user API"
+          },
+          "serverSignature" : {
+            "type" : "string",
+            "description" : "Sign-in only: HMAC(HMAC(SaltedPassword, \"Server Key\"), \"n=<userName>,r=<nonce>\") (Base64); the client checks it to know the server holds the verifier",
+            "format" : "byte"
+          }
+        },
+        "description" : "Issued or refreshed JWT token pair"
+      },
+      "RefreshRequest" : {
+        "required" : [ "refreshToken" ],
+        "type" : "object",
+        "properties" : {
+          "refreshToken" : {
+            "type" : "string"
+          }
+        },
+        "description" : "Token refresh or logout request"
+      },
+      "Product" : {
+        "type" : "object",
+        "properties" : {
+          "id" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "name" : {
+            "type" : "string"
+          },
+          "price" : {
+            "type" : "number",
+            "format" : "double"
+          },
+          "description" : {
+            "type" : "string"
+          }
+        },
+        "description" : "Product. All fields are optional when used as a projection."
+      },
+      "User" : {
+        "type" : "object",
+        "properties" : {
+          "id" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "userName" : {
+            "type" : "string"
+          },
+          "name" : {
+            "type" : "string"
+          },
+          "roles" : {
+            "type" : "string",
+            "description" : "Comma-separated role names"
+          }
+        },
+        "description" : "User. The password field is never included in responses."
+      },
+      "Purchase" : {
+        "type" : "object",
+        "properties" : {
+          "id" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "buyDate" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "user" : {
+            "$ref" : "#/components/schemas/User"
+          },
+          "items" : {
+            "description" : "Line items. In a **response**, the array of rows. In a **projection**, a `ProjectedCollection` object declaring the item shape plus the criteria, ordering and slice to apply.",
+            "oneOf" : [ {
+              "type" : "array",
+              "items" : {
+                "$ref" : "#/components/schemas/PurchaseItem"
+              }
+            }, {
+              "$ref" : "#/components/schemas/ProjectedCollection"
+            } ]
+          }
+        },
+        "description" : "Purchase. All fields are optional when used as a projection."
+      },
+      "PurchaseItem" : {
+        "type" : "object",
+        "properties" : {
+          "id" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "amount" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "price" : {
+            "type" : "number",
+            "format" : "double"
+          },
+          "purchaseId" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "productId" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "product" : {
+            "$ref" : "#/components/schemas/Product"
+          }
+        },
+        "description" : "Purchase line item. All fields are optional when used as a projection."
+      },
+      "ProductFetchResponse" : {
+        "required" : [ "items" ],
+        "type" : "object",
+        "properties" : {
+          "items" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/Product"
+            }
+          }
+        }
+      },
+      "ProductPageResponse" : {
+        "required" : [ "items", "totalItems" ],
+        "type" : "object",
+        "properties" : {
+          "items" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/Product"
+            }
+          },
+          "totalItems" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        }
+      },
+      "UserFetchResponse" : {
+        "required" : [ "items" ],
+        "type" : "object",
+        "properties" : {
+          "items" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/User"
+            }
+          }
+        }
+      },
+      "UserPageResponse" : {
+        "required" : [ "items", "totalItems" ],
+        "type" : "object",
+        "properties" : {
+          "items" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/User"
+            }
+          },
+          "totalItems" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        }
+      },
+      "PurchaseFetchResponse" : {
+        "required" : [ "items" ],
+        "type" : "object",
+        "properties" : {
+          "items" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/Purchase"
+            }
+          }
+        }
+      },
+      "PurchasePageResponse" : {
+        "required" : [ "items", "totalItems" ],
+        "type" : "object",
+        "properties" : {
+          "items" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/Purchase"
+            }
+          },
+          "totalItems" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        }
+      },
+      "PurchaseItemFetchResponse" : {
+        "required" : [ "items" ],
+        "type" : "object",
+        "properties" : {
+          "items" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/PurchaseItem"
+            }
+          }
+        }
+      },
+      "PurchaseItemPageResponse" : {
+        "required" : [ "items", "totalItems" ],
+        "type" : "object",
+        "properties" : {
+          "items" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/PurchaseItem"
+            }
+          },
+          "totalItems" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        }
+      }
+    },
+    "securitySchemes" : {
+      "bearerAuth" : {
+        "type" : "http",
+        "description" : "JWT access token from POST /api/auth/login",
+        "scheme" : "bearer",
+        "bearerFormat" : "JWT"
+      }
+    }
+  }
+}

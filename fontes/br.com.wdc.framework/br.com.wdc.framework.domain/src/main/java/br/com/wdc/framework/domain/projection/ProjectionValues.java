@@ -34,4 +34,8 @@ public class ProjectionValues {
         return new ProjectionList<>(bean, criteria);
     }
 
+    public <T> ProjectionSet<T> singletonSet(T bean, Object criteria) {
+        return new ProjectionSet<>(bean, criteria);
+    }
+
 }

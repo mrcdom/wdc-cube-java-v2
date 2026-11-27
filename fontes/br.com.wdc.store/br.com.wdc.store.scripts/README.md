@@ -12,6 +12,8 @@ graph TD
     sgbd --> DBReset["DBReset.java<br/><small>Clears the tables and inserts the seed</small>"]
     root --> codegen["codegen/"]
     codegen --> Gen["GenerateJooqSchema.java<br/><small>Generates the jOOQ classes from DBCreate</small>"]
+    codegen --> GenTokens["GenerateDesignTokens.java, GenerateMessages.java<br/><small>The tokens and the UI texts for every view technology</small>"]
+    codegen --> GenApi["GenerateOpenApi.java<br/><small>The REST API's contract, docs/openapi.json</small>"]
 ```
 
 ## DBCreate — the schema
@@ -73,11 +75,21 @@ mvn exec:java -pl br.com.wdc.store/br.com.wdc.store.scripts \
     -Dexec.mainClass="br.com.wdc.store.scripts.codegen.GenerateMessages"
 ```
 
+## GenerateOpenApi — the REST API's contract
+
+`GenerateOpenApi` writes the OpenAPI document of the REST API (`RepositoryApiDocs`, in `persistence.rest`) to `docs/openapi.json`, at the repository's root. The file is the API's contract, committed: a change to the API, including a field removed from the domain and from its documentation at once, shows there as a diff. `OpenApiSpecTest` fails while the file does not match the code; after reviewing the change, generate it again from `fontes/`:
+
+```bash
+mvn exec:java -pl br.com.wdc.store/br.com.wdc.store.scripts \
+    -Dexec.mainClass="br.com.wdc.store.scripts.codegen.GenerateOpenApi"
+```
+
 ## Dependencies
 
 | Artifact | Role |
 |----------|------|
 | `persistence.impl` | Generated jOOQ classes, `StoreDSLContext`, repositories used by `DBReset`, seed images |
+| `persistence.rest` | `RepositoryApiDocs`, the OpenAPI document `GenerateOpenApi` writes |
 | `framework-jooq` | `JsonDialect` |
 | `jooq-codegen` | Code generator used by `GenerateJooqSchema` |
 | `h2` | Database driver (in-memory database of the generator, local database) |
