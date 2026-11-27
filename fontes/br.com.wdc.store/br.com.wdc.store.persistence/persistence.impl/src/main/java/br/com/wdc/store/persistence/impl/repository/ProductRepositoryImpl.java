@@ -156,7 +156,7 @@ public class ProductRepositoryImpl extends BaseRepositoryImpl implements Product
 
         var updated = step.where(EN_PRODUCT.ID.eq(newBean.id())).execute() > 0;
         if (imageChanged) {
-            afterCommit(() -> ProductImageCache.evict(newBean.id()));
+            afterCommit(() -> ProductImageCache.changed(newBean.id()));
         }
         return updated;
     }
@@ -173,7 +173,7 @@ public class ProductRepositoryImpl extends BaseRepositoryImpl implements Product
                 .deleteFrom(EN_PRODUCT)
                 .where(applyConditions(EN_PRODUCT, criteria))
                 .execute();
-        afterCommit(ProductImageCache::clear);
+        afterCommit(ProductImageCache::changedAll);
         return deleted;
     }
 
@@ -238,7 +238,7 @@ public class ProductRepositoryImpl extends BaseRepositoryImpl implements Product
                 .set(EN_PRODUCT.IMAGE, image)
                 .where(EN_PRODUCT.ID.eq(productId))
                 .execute() > 0;
-        afterCommit(() -> ProductImageCache.evict(productId));
+        afterCommit(() -> ProductImageCache.changed(productId));
         return updated;
     }
 
@@ -247,7 +247,7 @@ public class ProductRepositoryImpl extends BaseRepositoryImpl implements Product
      * reset.
      */
     public static void clearImageCache() {
-        ProductImageCache.clear();
+        ProductImageCache.changedAll();
     }
 
     /** Runs {@code task} after the commit of the current transaction, or at once without one. */

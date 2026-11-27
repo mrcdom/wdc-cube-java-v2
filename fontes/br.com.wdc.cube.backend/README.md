@@ -68,6 +68,17 @@ A before-handler redirects a request at `/<context>/...` to `/<context>/index.ht
 ### Sessions
 The application sessions of the remote frontends are managed by `remote.host`. Their limits come from the `[server]` section of `application.toml`: `maxSessions` (concurrent sessions) and `sessionTtlSeconds` (how long an authenticated session survives a WebSocket disconnect).
 
+### Several instances
+
+With `[cluster] peers`, the instances keep a WebSocket mesh between them (package `cluster`: `ClusterMesh` at `/cluster`, `StoreCluster` for what goes on it) and tell each other the user sessions renewed or ended, the product images changed, and the remote view sessions that moved. One list can serve every instance; each finds itself in it. It needs `[security] jwt.secret`, from which the key they prove to each other is derived:
+
+```toml
+[cluster]
+peers = ["ws://store-a:8080", "ws://store-b:8080"]
+```
+
+What the instances share, what each keeps in memory and how to route them: [running-several-instances.md](../../docs/running-several-instances.md); a compose setup with two instances: [br.com.wdc.store.docker](../br.com.wdc.store/br.com.wdc.store.docker/README.md).
+
 ### CORS
 Configured in `[server]`: `cors.allowAll` reflects any origin (development); otherwise only `cors.allowedHosts` is accepted. `cors.allowCredentials` defaults to `true`.
 
@@ -86,11 +97,12 @@ SLF4J + Logback. `LogBootstrap` loads the work directory's `config/logback.xml`,
 | `jvm_*`, `process_*`, `system_*` | memory, GC, threads, classes, CPU, uptime |
 | `http_server_requests_seconds{method,route,status}` | every HTTP request, labeled by the route **as declared** (`/api/repo/product/{id}/image`); requests that match no route (static files, redirects, 404s) share `unmatched` |
 | `store_signins_total{outcome}` | sign-ins: `ok`; `refused` (wrong password, unknown user, bad nonce); `throttled` (refused while the account must wait) |
-| `store_sessions_live`, `store_sessions_renewed_total` | user sessions held in memory; sessions renewed by refresh token |
+| `store_sessions_live`, `store_sessions_renewed_total`, `store_sessions_changed_elsewhere_total` | user sessions held in memory; sessions renewed by refresh token; copies dropped because another instance renewed or ended them |
+| `store_cluster_peers`, `store_cluster_links_ready`, `store_cluster_messages_{sent,received}_total{type}`, `store_cluster_connections_total` | with `[cluster] peers`: other instances connected here; connections from here, ready; the mesh's messages; connections made |
 | `store_remote_sessions`, `store_remote_messages_seconds{outcome}` | remote view sessions alive; each client message the host handled, `ok` or `failed` |
 | `store_remote_transactions_open`, `store_remote_transactions_total{event}` | the REST API's remote transactions: open now; `begun`, `committed`, `rolledback`, `reaped`, `refused` |
 
-The framework modules take no metrics library: the backend reads what they expose (`RemoteTransactionCoordinator.stats()`, `RemoteApplicationRegistry.onMessage`), and `persistence.impl` counts the sign-ins in the global registry. The health checks are open: `/health/live` and `/health/ready`.
+The framework modules take no metrics library: the backend reads what they expose (`RemoteTransactionCoordinator.stats()`, `RemoteApplicationRegistry.onMessage`), and `persistence.impl` counts the sign-ins in the global registry. The health checks are open: `/health/live` and `/health/ready`; with the mesh, `/health/ready` also says how many other instances are connected (`cluster.peers`, `cluster.links`), without failing on it.
 
 ## Technical Details
 
@@ -154,4 +166,4 @@ Five failed sign-ins in a row make the account wait (30 s, doubling up to 15 min
 
 ### Startup Order
 
-`BackendServer.start()` calls `BusinessContext.configure()` **before** `createJavalinApp()`, so `AuthenticationService.BEAN` is already populated when `RepositoryApiRoutes` decides whether to register the auth routes and the security filter. `BusinessContext.start()` runs after the app is created, and the server starts listening last.
+`BackendServer.start()` calls `BusinessContext.configure()` **before** `createJavalinApp()`, so `AuthenticationService.BEAN` is already populated when `RepositoryApiRoutes` decides whether to register the auth routes and the security filter. `BusinessContext.start()` runs after the app is created, and the server starts listening last; then the mesh, if any, connects to its peers, so that each instance can reach its own address in the list.

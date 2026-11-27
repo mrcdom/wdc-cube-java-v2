@@ -5,11 +5,13 @@
 package br.com.wdc.store.persistence.impl.scheme;
 
 
+import br.com.wdc.store.persistence.impl.scheme.tables.EnAuthNonce;
 import br.com.wdc.store.persistence.impl.scheme.tables.EnLoginFailure;
 import br.com.wdc.store.persistence.impl.scheme.tables.EnProduct;
 import br.com.wdc.store.persistence.impl.scheme.tables.EnPurchase;
 import br.com.wdc.store.persistence.impl.scheme.tables.EnPurchaseitem;
 import br.com.wdc.store.persistence.impl.scheme.tables.EnUser;
+import br.com.wdc.store.persistence.impl.scheme.tables.EnUserSession;
 
 import java.util.Arrays;
 import java.util.List;
@@ -28,6 +30,8 @@ public class Public extends SchemaImpl {
 
     public static final Public PUBLIC = new Public();
 
+    public final EnAuthNonce EN_AUTH_NONCE = EnAuthNonce.EN_AUTH_NONCE;
+
     public final EnLoginFailure EN_LOGIN_FAILURE = EnLoginFailure.EN_LOGIN_FAILURE;
 
     public final EnProduct EN_PRODUCT = EnProduct.EN_PRODUCT;
@@ -37,6 +41,8 @@ public class Public extends SchemaImpl {
     public final EnPurchaseitem EN_PURCHASEITEM = EnPurchaseitem.EN_PURCHASEITEM;
 
     public final EnUser EN_USER = EnUser.EN_USER;
+
+    public final EnUserSession EN_USER_SESSION = EnUserSession.EN_USER_SESSION;
 
     private Public() {
         super(DSL.name("PUBLIC"), null, DSL.comment(""));
@@ -61,11 +67,13 @@ public class Public extends SchemaImpl {
     @Override
     public final List<Table<?>> getTables() {
         return Arrays.asList(
+            EnAuthNonce.EN_AUTH_NONCE,
             EnLoginFailure.EN_LOGIN_FAILURE,
             EnProduct.EN_PRODUCT,
             EnPurchase.EN_PURCHASE,
             EnPurchaseitem.EN_PURCHASEITEM,
-            EnUser.EN_USER
+            EnUser.EN_USER,
+            EnUserSession.EN_USER_SESSION
         );
     }
 }

@@ -23,6 +23,11 @@ final class SecurityMeters {
             .description("Sessions renewed by their refresh token")
             .register(Metrics.globalRegistry);
 
+    /** Copies of sessions dropped because another instance changed them. */
+    static final Counter CHANGED_ELSEWHERE = Counter.builder("store.sessions.changed.elsewhere")
+            .description("Sessions held here that another instance renewed or ended")
+            .register(Metrics.globalRegistry);
+
     private SecurityMeters() {
     }
 

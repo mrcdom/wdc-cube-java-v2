@@ -93,6 +93,14 @@ public class DBCreate {
 			createTableLoginFailure();
 		}
 
+		if (!existingTables.contains("EN_USER_SESSION")) {
+			createTableUserSession();
+		}
+
+		if (!existingTables.contains("EN_AUTH_NONCE")) {
+			createTableAuthNonce();
+		}
+
 		upgradePasswordsToVerifiers();
 
 		if (this.mustResetDb && !this.skipReset) {
@@ -137,6 +145,39 @@ public class DBCreate {
 				    CONSTRAINT PK_LOGIN_FAILURE PRIMARY KEY (USERNAME)
 				)""");
 		dsl.execute("CREATE INDEX IX_LOGIN_FAILURE_LAST ON EN_LOGIN_FAILURE (LAST_FAILURE)");
+	}
+
+	/**
+	 * The users' sessions ({@code AccessContextCache}): who, with which roles, the refresh token, when the access token
+	 * expires (UTC), and the session's RSA key pair — the private key encrypted with a key derived from the JWT secret.
+	 */
+	private void createTableUserSession() {
+		dsl.execute("""
+				CREATE TABLE EN_USER_SESSION (
+				    SESSION_ID VARCHAR(36) NOT NULL,
+				    USERID BIGINT NOT NULL,
+				    USERNAME VARCHAR(100) NOT NULL,
+				    ROLES VARCHAR(255),
+				    REFRESH_TOKEN VARCHAR(36) NOT NULL,
+				    EXPIRES_AT TIMESTAMP NOT NULL,
+				    PUBLIC_KEY VARCHAR(1000) NOT NULL,
+				    PRIVATE_KEY VARCHAR(4000) NOT NULL,
+				    CONSTRAINT PK_USER_SESSION PRIMARY KEY (SESSION_ID),
+				    CONSTRAINT UK_USER_SESSION_REFRESH UNIQUE (REFRESH_TOKEN)
+				)""");
+		dsl.execute("CREATE INDEX IX_USER_SESSION_EXPIRES ON EN_USER_SESSION (EXPIRES_AT)");
+	}
+
+	/** The nonces of the sign-in challenges in flight ({@code NonceStore}): for whom, and until when (UTC). */
+	private void createTableAuthNonce() {
+		dsl.execute("""
+				CREATE TABLE EN_AUTH_NONCE (
+				    NONCE VARCHAR(36) NOT NULL,
+				    USERNAME VARCHAR(100) NOT NULL,
+				    EXPIRES_AT TIMESTAMP NOT NULL,
+				    CONSTRAINT PK_AUTH_NONCE PRIMARY KEY (NONCE)
+				)""");
+		dsl.execute("CREATE INDEX IX_AUTH_NONCE_EXPIRES ON EN_AUTH_NONCE (EXPIRES_AT)");
 	}
 
 	// -- Upgrades of older databases --

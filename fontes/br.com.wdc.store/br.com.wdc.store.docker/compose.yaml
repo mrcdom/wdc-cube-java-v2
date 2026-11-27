@@ -1,0 +1,78 @@
+# The WDC Store with two backend instances: PostgreSQL, the instances on their mesh (cluster.peers), nginx in front
+# (affinity and the /api/auth limit) and Prometheus scraping both. See README.md.
+name: wdc-store
+
+x-store: &store
+  build: .
+  image: wdc-store-backend:local
+  environment:
+    STORE_DB_URL: jdbc:postgresql://postgres:5432/store
+    STORE_DB_USER: store
+    STORE_DB_PASSWORD: ${STORE_DB_PASSWORD:?set it in .env}
+    STORE_JWT_SECRET: ${STORE_JWT_SECRET:?set it in .env}
+    STORE_REMOTE_SIGNING_KEY: ${STORE_REMOTE_SIGNING_KEY:?set it in .env}
+    STORE_MANAGEMENT_TOKEN: ${STORE_MANAGEMENT_TOKEN:?set it in .env}
+    STORE_CLUSTER_PEERS: ws://store-a:8080,ws://store-b:8080
+    # nginx limits /api/auth per client address, for both instances together
+    STORE_AUTH_REQUESTS_PER_MINUTE: "0"
+  healthcheck:
+    test: ["CMD", "curl", "-fsS", "http://127.0.0.1:8080/health/ready"]
+    interval: 5s
+    timeout: 3s
+    retries: 30
+    start_period: 20s
+  restart: unless-stopped
+
+services:
+  postgres:
+    image: postgres:18.1
+    environment:
+      POSTGRES_DB: store
+      POSTGRES_USER: store
+      POSTGRES_PASSWORD: ${STORE_DB_PASSWORD:?set it in .env}
+    volumes:
+      - postgres-data:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U store -d store"]
+      interval: 3s
+      timeout: 3s
+      retries: 30
+
+  # the first instance creates the tables and loads the demo data on an empty database; the second waits for it
+  store-a:
+    <<: *store
+    depends_on:
+      postgres: { condition: service_healthy }
+    ports: ["18081:8080"]
+
+  store-b:
+    <<: *store
+    depends_on:
+      store-a: { condition: service_healthy }
+    ports: ["18082:8080"]
+
+  nginx:
+    image: nginx:1.29.3
+    volumes:
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      store-a: { condition: service_healthy }
+      store-b: { condition: service_healthy }
+    ports: ["18080:8080"]
+
+  prometheus:
+    image: prom/prometheus:v3.7.3
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    secrets: [management_token]
+    depends_on:
+      store-a: { condition: service_healthy }
+      store-b: { condition: service_healthy }
+    ports: ["19090:9090"]
+
+secrets:
+  management_token:
+    environment: STORE_MANAGEMENT_TOKEN
+
+volumes:
+  postgres-data:

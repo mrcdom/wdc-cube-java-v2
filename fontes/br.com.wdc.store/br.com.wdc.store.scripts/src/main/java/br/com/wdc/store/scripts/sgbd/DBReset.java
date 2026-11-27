@@ -4,11 +4,13 @@ import static br.com.wdc.store.persistence.impl.scheme.Sequences.SQ_PRODUCT;
 import static br.com.wdc.store.persistence.impl.scheme.Sequences.SQ_PURCHASE;
 import static br.com.wdc.store.persistence.impl.scheme.Sequences.SQ_PURCHASEITEM;
 import static br.com.wdc.store.persistence.impl.scheme.Sequences.SQ_USER;
+import static br.com.wdc.store.persistence.impl.scheme.tables.EnAuthNonce.EN_AUTH_NONCE;
 import static br.com.wdc.store.persistence.impl.scheme.tables.EnLoginFailure.EN_LOGIN_FAILURE;
 import static br.com.wdc.store.persistence.impl.scheme.tables.EnProduct.EN_PRODUCT;
 import static br.com.wdc.store.persistence.impl.scheme.tables.EnPurchase.EN_PURCHASE;
 import static br.com.wdc.store.persistence.impl.scheme.tables.EnPurchaseitem.EN_PURCHASEITEM;
 import static br.com.wdc.store.persistence.impl.scheme.tables.EnUser.EN_USER;
+import static br.com.wdc.store.persistence.impl.scheme.tables.EnUserSession.EN_USER_SESSION;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -67,6 +69,8 @@ public class DBReset {
 		dsl.deleteFrom(EN_PRODUCT).execute();
 		dsl.deleteFrom(EN_USER).execute();
 		dsl.deleteFrom(EN_LOGIN_FAILURE).execute();
+		dsl.deleteFrom(EN_USER_SESSION).execute();
+		dsl.deleteFrom(EN_AUTH_NONCE).execute();
 		ProductRepositoryImpl.clearImageCache();
 
 		long id;

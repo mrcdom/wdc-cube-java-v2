@@ -34,5 +34,7 @@ A record is not edited once accepted, except to fix a mistake or a link. A decis
 | [0026](0026-metrics-and-health.md) | Metrics with Micrometer in Prometheus format, behind a token; live and ready health checks | Accepted |
 | [0027](0027-design-tokens.md) | One set of design tokens, generated for every view technology | Accepted |
 | [0028](0028-ui-texts-in-one-catalog.md) | The UI texts in one catalog per language, translated by the views from keys | Accepted |
+| [0029](0029-sessions-in-the-database-and-a-mesh-between-instances.md) | Sessions in the database, held in memory once read; the instances tell each other over a WebSocket mesh | Accepted |
+| [0030](0030-compose-setup-with-two-instances.md) | A compose setup with two instances, its image made from what Maven built | Accepted |
 
 New record: copy the shape of an existing one (`# NNNN. <decision as a sentence>`, Date, Status, Context, Decision, Consequences, and Alternatives considered when there were real ones), take the next number, and add it to this table.

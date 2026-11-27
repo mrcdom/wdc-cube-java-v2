@@ -81,7 +81,7 @@ public class ObservabilityTest {
     // :: Helpers
 
     private int start(String token) {
-        var observability = new Observability(token, () -> dataSource, () -> null, () -> null);
+        var observability = new Observability(token, () -> dataSource, () -> null, () -> null, () -> null);
         var app = Javalin.create(config -> {
             observability.configure(config);
             config.routes.get("/items/{id}", ctx -> ctx.result("item " + ctx.pathParam("id")));

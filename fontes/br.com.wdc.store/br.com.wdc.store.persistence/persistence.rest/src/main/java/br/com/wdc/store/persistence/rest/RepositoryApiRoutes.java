@@ -6,6 +6,7 @@ import br.com.wdc.framework.domain.exception.TransactionConflictException;
 import br.com.wdc.framework.domain.exception.TooManyRequestsException;
 import br.com.wdc.framework.domain.security.AuthenticationService;
 import br.com.wdc.framework.domain.security.SecurityContext;
+import br.com.wdc.framework.domain.transaction.UnknownTransactionException;
 import br.com.wdc.store.domain.StoreTransactions;
 import br.com.wdc.store.persistence.rest.doc.RepositoryApiDocs;
 import br.com.wdc.store.persistence.rest.security.SecurityFilter;
@@ -62,6 +63,12 @@ public final class RepositoryApiRoutes {
         // Transactional state conflict (e.g. a write without X-Tx-Id while a tx is open) → 409, not 403
         config.routes.exception(TransactionConflictException.class, (e, ctx) -> {
             ctx.status(409);
+            ctx.json(java.util.Map.of("error", e.getMessage()));
+        });
+
+        // A remote transaction this instance does not know (ended, reaped, or held by another instance) → 410
+        config.routes.exception(UnknownTransactionException.class, (e, ctx) -> {
+            ctx.status(410);
             ctx.json(java.util.Map.of("error", e.getMessage()));
         });
 

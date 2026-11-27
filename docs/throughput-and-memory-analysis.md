@@ -252,7 +252,7 @@ Even at an extreme peak with 5,900 WS sessions and a 10 GB heap, both machines h
 
 ### Horizontal scaling
 
-Beyond the memory limits of a single instance, distribute with a load balancer (**sticky sessions required for WebSocket**):
+Beyond the memory limits of a single instance, distribute with a load balancer (**each tab's WebSocket stays on one instance**; what the instances share and how to route them: [running-several-instances.md](running-several-instances.md)):
 
 | Instances | Heap/instance | Total WS sessions | Total throughput — Laptop | Total throughput — Xeon |
 |-----------:|:--------------:|:-----------------:|:-------------------------:|:-----------------------:|

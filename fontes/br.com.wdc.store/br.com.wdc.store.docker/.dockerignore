@@ -1,0 +1,6 @@
+# only what the Dockerfile copies goes to the daemon: never the secrets of .env
+*
+!Dockerfile
+!entrypoint.sh
+!logback.xml
+!build/context

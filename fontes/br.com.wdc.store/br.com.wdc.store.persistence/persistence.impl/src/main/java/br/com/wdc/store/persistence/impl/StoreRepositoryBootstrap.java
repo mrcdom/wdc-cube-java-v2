@@ -21,6 +21,8 @@ import br.com.wdc.store.persistence.impl.repository.PurchaseItemRepositoryImpl;
 import br.com.wdc.store.persistence.impl.repository.PurchaseRepositoryImpl;
 import br.com.wdc.store.persistence.impl.repository.UserRepositoryImpl;
 import br.com.wdc.store.persistence.impl.security.AuthenticationServiceImpl;
+import br.com.wdc.store.persistence.impl.security.LoginThrottle;
+import br.com.wdc.store.persistence.impl.security.SessionEvents;
 
 public class StoreRepositoryBootstrap {
 
@@ -100,8 +102,17 @@ public class StoreRepositoryBootstrap {
      * @param jwtSecret secret for JWT signing
      */
     public static void initializeSecurity(String jwtSecret, Defer cleanUp) {
+        initializeSecurity(jwtSecret, SessionEvents.NONE, cleanUp);
+    }
+
+    /**
+     * The sign-in and the sessions, with {@code events} telling the other backend instances of the sessions that change
+     * here, and this one of theirs.
+     */
+    public static void initializeSecurity(String jwtSecret, SessionEvents events, Defer cleanUp) {
         var rawUserRepo = UserRepository.BEAN.get();
-        AuthenticationService.BEAN.set(new AuthenticationServiceImpl(rawUserRepo, jwtSecret));
+        AuthenticationService.BEAN.set(new AuthenticationServiceImpl(rawUserRepo, jwtSecret, events,
+                new LoginThrottle()));
         cleanUp.push(() -> AuthenticationService.BEAN.set(null));
     }
 

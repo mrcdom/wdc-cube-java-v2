@@ -8,6 +8,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BiFunction;
+import java.util.function.Consumer;
 
 import br.com.wdc.framework.commons.concurrent.ScheduledExecutor;
 import br.com.wdc.framework.commons.function.Registration;
@@ -41,6 +42,8 @@ public final class RemoteApplicationRegistry<T extends RemoteApplication> {
     private final BiFunction<String, Map<String, Object>, T> factory;
 
     private final CopyOnWriteArrayList<MessageListener> messageListeners = new CopyOnWriteArrayList<>();
+
+    private final CopyOnWriteArrayList<Consumer<String>> createdListeners = new CopyOnWriteArrayList<>();
 
     /** Told after each client message the host handled: how long it took, and whether it failed. */
     @FunctionalInterface
@@ -81,6 +84,31 @@ public final class RemoteApplicationRegistry<T extends RemoteApplication> {
     public Registration onMessage(MessageListener listener) {
         messageListeners.add(listener);
         return () -> messageListeners.remove(listener);
+    }
+
+    /**
+     * Asks to be told of each session made here, with its id. With several instances of the host, a session made here
+     * under an id another instance knows means its client moved here: that one can let go of its copy
+     * ({@link #releaseIdle}).
+     */
+    public Registration onCreated(Consumer<String> listener) {
+        createdListeners.add(listener);
+        return () -> createdListeners.remove(listener);
+    }
+
+    /**
+     * Releases the session {@code appId} if it is here and no socket holds it: its client went on elsewhere. One with a
+     * socket is kept — its client is still here.
+     *
+     * @return {@code true} if it was released
+     */
+    public boolean releaseIdle(String appId) {
+        var app = get(appId);
+        if (app == null || app.getWsSession() != null) {
+            return false;
+        }
+        app.release();
+        return true;
     }
 
     /** Called by the transport after handling a client message of a session. */
@@ -172,7 +200,21 @@ public final class RemoteApplicationRegistry<T extends RemoteApplication> {
         if (isFull()) {
             throw new CapacityExceededException(maxInstances);
         }
-        return instanceMap.computeIfAbsent(appId, id -> factory.apply(id, request));
+        var created = new boolean[1];
+        var app = instanceMap.computeIfAbsent(appId, id -> {
+            created[0] = true;
+            return factory.apply(id, request);
+        });
+        if (created[0]) {
+            for (var listener : createdListeners) {
+                try {
+                    listener.accept(appId);
+                } catch (RuntimeException e) {
+                    LOG.warn("A session listener failed", e);
+                }
+            }
+        }
+        return app;
     }
 
     public T remove(String appId) {

@@ -1,9 +1,13 @@
 package br.com.wdc.cube.backend;
 
+import java.util.List;
 import java.util.concurrent.ScheduledExecutorService;
 
 import javax.sql.DataSource;
 
+import br.com.wdc.cube.backend.cluster.ClusterKey;
+import br.com.wdc.cube.backend.cluster.ClusterMesh;
+import br.com.wdc.cube.backend.cluster.StoreCluster;
 import br.com.wdc.cube.backend.supports.JtaSupport;
 import br.com.wdc.cube.backend.supports.SqlDataSourceSupport;
 import br.com.wdc.framework.commons.concurrent.ScheduledExecutor;
@@ -15,14 +19,21 @@ import br.com.wdc.framework.persistence.transaction.RemoteTransactionOptions;
 import br.com.wdc.store.domain.StoreConfig;
 import br.com.wdc.store.persistence.impl.StoreRepositoryBootstrap;
 import br.com.wdc.store.persistence.impl.concurrent.ScheduledExecutorAdapter;
+import br.com.wdc.store.persistence.impl.security.SessionEvents;
 import br.com.wdc.store.persistence.rest.RemoteTransactions;
 import br.com.wdc.store.presentation.presenter.open.login.LoginPresenter;
 import br.com.wdc.store.scripts.sgbd.DBCreate;
 import br.com.wdc.store.view.remote.host.RemoteHostBootstrap;
+import io.javalin.config.JavalinConfig;
 
 public class BusinessContext {
 
     private DataSource dataSource;
+
+    private volatile StoreCluster cluster;
+
+    /** The addresses of {@code cluster.peers}, connected to once the server is up ({@link #startCluster}). */
+    private List<String> peers = List.of();
 
     /** The module's DataSource, once {@link #configure} ran; {@code null} before. */
     public DataSource dataSource() {
@@ -86,8 +97,11 @@ public class BusinessContext {
             cleanUp.push(() -> RemoteTransactions.COORDINATOR.set(null));
 
             var jwtSecret = StoreConfig.getJwtSecret();
+            this.peers = config.getList("cluster.peers");
+            var cluster = createCluster(jwtSecret, cleanUp);
             if (jwtSecret != null && !jwtSecret.isBlank()) {
-                StoreRepositoryBootstrap.initializeSecurity(jwtSecret, cleanUp);
+                StoreRepositoryBootstrap.initializeSecurity(jwtSecret,
+                        cluster != null ? cluster.sessionEvents() : SessionEvents.NONE, cleanUp);
             }
 
             LoginPresenter.simulateSlowLogin(config.getBoolean("simulation.slowLogin", false));
@@ -96,8 +110,56 @@ public class BusinessContext {
         }
     }
 
+    /**
+     * The mesh to the other instances, when {@code cluster.peers} names them; it tells them, and learns from them, the
+     * sessions and the product images that change. Their proof of being one of them is a key derived from the JWT
+     * secret, so the mesh needs it.
+     */
+    private StoreCluster createCluster(String jwtSecret, Defer cleanUp) {
+        if (peers.isEmpty()) {
+            return null;
+        }
+        if (jwtSecret == null || jwtSecret.isBlank()) {
+            throw new IllegalStateException(
+                    "cluster.peers needs security.jwt.secret: the instances prove to each other a key derived from it");
+        }
+        var mesh = new ClusterMesh(ClusterKey.from(jwtSecret));
+        cleanUp.push(mesh::close);
+        var cluster = new StoreCluster(mesh);
+        var images = cluster.shareImageChanges();
+        cleanUp.push(images::remove);
+        this.cluster = cluster;
+        cleanUp.push(() -> this.cluster = null);
+        return cluster;
+    }
+
+    /** The mesh to the other instances; {@code null} without {@code cluster.peers}. */
+    public StoreCluster cluster() {
+        return cluster;
+    }
+
+    /** Adds the mesh's route, and has it tell the remote view sessions made here (once the remote host is configured). */
+    public void configureCluster(JavalinConfig config, Defer cleanUp) {
+        if (cluster == null) {
+            return;
+        }
+        cluster.mesh().configure(config);
+        var registry = RemoteHostBootstrap.registry();
+        if (registry != null) {
+            var remoteSessions = cluster.shareRemoteSessions(registry);
+            cleanUp.push(remoteSessions::remove);
+        }
+    }
+
     public void start(Defer cleanUp) {
         RemoteHostBootstrap.start(cleanUp);
+    }
+
+    /** Connects to the other instances: once this one answers, so that each can reach its own address too. */
+    public void startCluster() {
+        if (cluster != null) {
+            cluster.mesh().start(peers);
+        }
     }
 
     /**

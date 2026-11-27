@@ -3,7 +3,9 @@ package br.com.wdc.framework.domain.config;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 import br.com.wdc.framework.commons.log.Log;
@@ -111,11 +113,39 @@ public final class AppConfig {
     }
 
     /**
+     * A list of strings, written on one line as a TOML array ({@code peers = ["ws://a:8080", "ws://b:8080"]}) or as
+     * one string of comma-separated items; empty when the key is missing.
+     */
+    public List<String> getList(String key) {
+        var value = properties.get(key);
+        if (value == null) {
+            return List.of();
+        }
+        var items = value.strip();
+        if (items.startsWith("[") && items.endsWith("]")) {
+            items = items.substring(1, items.length() - 1);
+        }
+        var list = new ArrayList<String>();
+        for (var item : items.split(",")) {
+            var text = item.strip();
+            if (text.length() >= 2 && (text.startsWith("\"") && text.endsWith("\"")
+                    || text.startsWith("'") && text.endsWith("'"))) {
+                text = text.substring(1, text.length() - 1).strip();
+            }
+            if (!text.isEmpty()) {
+                list.add(text);
+            }
+        }
+        return List.copyOf(list);
+    }
+
+    /**
      * Minimal TOML parser supporting:
      * <ul>
      * <li>Sections: [section]</li>
      * <li>Key-value pairs: key = value / key = "value"</li>
      * <li>Comments: # ...</li>
+     * <li>Arrays on one line: key = ["a", "b"], read with {@link #getList}</li>
      * <li>Nested sections: [section.subsection]</li>
      * </ul>
      * Keys are flattened as "section.key".
