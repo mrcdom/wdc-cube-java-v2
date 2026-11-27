@@ -31,7 +31,7 @@ Running it exposed one thing the backend lacked: behind a proxy, the browsers' a
 - The routing rules of the guide are the ones nginx runs here, not a sketch.
 - The image is small, with no JDK, Maven, Node or Flutter, but `docker build` alone does not build it: `prepare.sh` comes first, and needs the project's toolchain.
 - The setup is a reference to start from, not a production deployment: no TLS, the instances' ports open for the checks, secrets in a local file.
-- The CI workflow (`.github/workflows/ci.yml`) brings it up and runs `check.py` on every push and pull request to `main`, after the build and the tests.
+- The CI workflow (`.github/workflows/ci.yml`) brings it up and runs `check.py` and the browser checks (`browser/`, Playwright through nginx) on every push and pull request to `main`, after the build and the tests.
 
 ## Alternatives considered
 

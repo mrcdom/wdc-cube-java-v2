@@ -287,7 +287,7 @@ Test structure:
 | `BaseBusinessTest` | Business logic and repository tests |
 | `BasePresentationTest` | Full workflow tests with view mocks |
 
-**CI** (`.github/workflows/ci.yml`) runs on every push and pull request to `main`: `mvn clean install` with its tests, the React, React bridge, Flutter and Codename One tests, the four web frontends, then the compose setup with two instances checked by its `check.py`.
+**CI** (`.github/workflows/ci.yml`) runs on every push and pull request to `main`: `mvn clean install` with its tests, the React, React bridge, Flutter and Codename One tests, the four web frontends, then the compose setup with two instances checked by its `check.py` and by browser checks of the web frontends (Playwright).
 
 ## Configuration
 

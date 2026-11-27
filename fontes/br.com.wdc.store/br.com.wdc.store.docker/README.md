@@ -51,7 +51,18 @@ It needs only Python's standard library, and prints PASS or FAIL for each check.
 
 The addresses can be changed with `STORE_NGINX`, `STORE_A`, `STORE_B` and `STORE_PROMETHEUS`.
 
-The CI workflow (`.github/workflows/ci.yml`) runs the same on every push and pull request to `main`: it stages the context from the build, generates fresh secrets, brings the setup up and runs `check.py`.
+## Browser checks
+
+[`browser/`](browser) opens the web frontends in Chromium through nginx, with Playwright: React signs in, buys a product and sees the receipt; the TeaVM remote shell signs in and shows Home; teavm.web signs in, buys and sees the receipt. With the setup up:
+
+```bash
+cd browser
+npm install
+npx playwright install chromium
+npx playwright test         # STORE_NGINX changes the address
+```
+
+The CI workflow (`.github/workflows/ci.yml`) runs the same on every push and pull request to `main`: it stages the context from the build, generates fresh secrets, brings the setup up, and runs `check.py` and the browser checks.
 
 ## A reference, not a deployment
 
