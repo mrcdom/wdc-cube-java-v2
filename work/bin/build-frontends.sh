@@ -31,12 +31,12 @@ FONTES="$ROOT_DIR/fontes"
 REMOTE="$FONTES/br.com.wdc.store/br.com.wdc.store.view.remote"
 TEAVM="$FONTES/br.com.wdc.store/br.com.wdc.store.view.teavm"
 
-# target | build script | required tool | destination folder in work/frontend
+# target | build script | required tools (comma-separated) | destination folder in work/frontend
 TARGETS=(
     "react|$REMOTE/remote.shell.react/build.sh|npm|remote.shell.react"
     "flutter|$REMOTE/remote.shell.flutter/flutter.web/build.sh|flutter|remote.shell.flutter"
     "teavm.shell|$REMOTE/remote.shell.teavm/build.sh|mvn|remote.shell.teavm"
-    "teavm.web|$TEAVM/teavm.web/build.sh|mvn|teavm.web"
+    "teavm.web|$TEAVM/teavm.web/build.sh|mvn,npm|teavm.web"
 )
 
 field() { echo "$1" | cut -d'|' -f"$2"; }
@@ -90,17 +90,20 @@ if [ -z "${JAVA25_HOME:-}" ] && [ -n "${JAVA_HOME:-}" ]; then
     export JAVA25_HOME="$JAVA_HOME"
 fi
 
+# Prints why the first missing tool of a comma-separated list is missing, and succeeds; fails when all are there.
 missing_tool() {
-    local tool="$1"
-    case "$tool" in
-        mvn)
-            command -v mvn >/dev/null || { echo "mvn not found in PATH"; return 0; }
-            [ -n "${JAVA25_HOME:-}" ] || { echo "JAVA25_HOME (or JAVA_HOME) does not point to a JDK 25"; return 0; }
-            ;;
-        *)
-            command -v "$tool" >/dev/null || { echo "$tool not found in PATH"; return 0; }
-            ;;
-    esac
+    local tool
+    for tool in ${1//,/ }; do
+        case "$tool" in
+            mvn)
+                command -v mvn >/dev/null || { echo "mvn not found in PATH"; return 0; }
+                [ -n "${JAVA25_HOME:-}" ] || { echo "JAVA25_HOME (or JAVA_HOME) does not point to a JDK 25"; return 0; }
+                ;;
+            *)
+                command -v "$tool" >/dev/null || { echo "$tool not found in PATH"; return 0; }
+                ;;
+        esac
+    done
     return 1
 }
 

@@ -112,21 +112,19 @@ JAVA_HOME="$JAVA" mvn clean install -DskipTests -q -pl teavm.commons,teavm.web -
 echo "    OK"
 echo ""
 
-# 2. Bundle web-cache into frontendDist (CDN resources: Bootstrap Icons, SWC bundle, fonts)
-#    On desktop these are served by the backend; on mobile they must be embedded in the app.
+# 2. Bundle web-cache into frontendDist (CDN resources: Bootstrap Icons, fonts)
+#    On desktop these are served by the backend; on mobile they must be embedded in the app. The Spectrum Web
+#    Components come with teavm.web itself (js/swc-elements.js, made by its build.sh).
 #
 #    We copy only the directories needed by index.html:
-#      swc-bundle/      — self-contained esbuild bundle of @spectrum-web-components (no /npm:... imports)
 #      cdn.jsdelivr.net/npm/bootstrap-icons/ — @-free symlink → bootstrap-icons@1.11.3
 #      fonts.googleapis.com/ — Google Fonts CSS + subset
-#    The jspm.dev/ directory (hundreds of files with /npm:... absolute imports) is NOT copied —
-#    the self-contained bundle replaces it entirely.
 echo ">>> [2/3] Bundling web-cache assets..."
 if [ -d "$WEB_CACHE_SRC" ]; then
     rm -rf "$WEB_CACHE_DST"
     mkdir -p "$WEB_CACHE_DST"
     # Copy only the required subdirectories (avoids the jspm.dev mess)
-    for subdir in swc-bundle cdn.jsdelivr.net fonts.googleapis.com; do
+    for subdir in cdn.jsdelivr.net fonts.googleapis.com; do
         if [ -d "$WEB_CACHE_SRC/$subdir" ]; then
             rsync -rL "$WEB_CACHE_SRC/$subdir/" "$WEB_CACHE_DST/$subdir/"
         fi

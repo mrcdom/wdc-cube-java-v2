@@ -8,7 +8,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends curl && rm -rf 
 
 COPY build/context/backend.jar /app/backend.jar
 COPY build/context/frontend /work/frontend
-COPY build/context/web-cache /work/data/web-cache
 COPY logback.xml /work/config/logback.xml
 COPY entrypoint.sh /app/entrypoint.sh
 
