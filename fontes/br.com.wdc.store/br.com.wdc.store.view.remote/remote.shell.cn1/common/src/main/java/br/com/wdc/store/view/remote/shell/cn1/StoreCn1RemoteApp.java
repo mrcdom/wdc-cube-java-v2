@@ -234,6 +234,9 @@ public class StoreCn1RemoteApp extends Lifecycle {
         rootSlot.mount(elementOf(rv)); // re-mounts only when the element reference changes (same vsid → same view)
     }
 
+    /** The host's alert of an unexpected error; its argument, when present, is the cause's message. */
+    private static final int ALERT_UNEXPECTED_ERROR = -1;
+
     /**
      * The host alert (the browser's {@code alertId}/{@code alertArgs}): stays on screen until dismissed, which
      * notifies the host (browser event 1), whose alert action can then run.
@@ -251,16 +254,19 @@ public class StoreCn1RemoteApp extends Lifecycle {
         for (Object item : Json.asList(browser.get("alertArgs"))) {
             args.add(String.valueOf(item));
         }
+        String first = args.isEmpty() || args.get(0).isEmpty() ? null : args.get(0);
         final String message;
-        if (alertId == -2) {
-            message = Texts.format(StoreMessages.ALERT_URI_NOT_ACCESSIBLE, "uri", args.isEmpty() ? "" : args.get(0));
+        if (alertId == ALERT_UNEXPECTED_ERROR) {
+            message = first != null
+                    ? Texts.format(StoreMessages.ERROR_UNEXPECTED_WITH_CAUSE, "cause", first)
+                    : Texts.text(StoreMessages.ERROR_UNEXPECTED);
         } else {
-            message = args.isEmpty() ? Texts.text(StoreMessages.ERROR_UNEXPECTED) : args.get(0);
+            // an application's own alert brings its text as its first argument
+            message = first != null ? first : Texts.text(StoreMessages.ERROR_UNEXPECTED);
         }
-        final String detail = args.size() > 1 ? args.get(1) : null;
 
         CN.callSerially(() -> {
-            Dialog.show(Texts.text(StoreMessages.ALERT_TITLE), detail != null ? message + "\n\n" + detail : message,
+            Dialog.show(Texts.text(StoreMessages.ALERT_TITLE), message,
                     Texts.text(StoreMessages.ALERT_OK), null);
             shownAlertId = 0;
             session.submit(BridgeSession.BROWSER_VSID, 1, new HashMap<String, Object>());

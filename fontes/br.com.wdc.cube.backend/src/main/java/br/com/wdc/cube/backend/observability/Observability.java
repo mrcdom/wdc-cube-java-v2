@@ -90,15 +90,22 @@ public final class Observability {
     }
 
     /**
-     * Adds the registry to the global one and binds the meters; {@code cleanUp} takes them out again. Called once the
-     * remote host is configured, so that its sessions can be followed.
+     * Adds the registry to Micrometer's global one, before anything registers a meter there (the lower layers count
+     * from the start: sign-ins, the mesh); {@code cleanUp} takes it out again.
      */
-    public void start(Defer cleanUp) {
+    public void attach(Defer cleanUp) {
         Metrics.globalRegistry.add(registry);
         cleanUp.push(() -> {
             Metrics.globalRegistry.remove(registry);
             registry.close();
         });
+    }
+
+    /**
+     * Binds the meters; {@code cleanUp} takes them out again. Called once the remote host is configured, so that its
+     * sessions can be followed, and after {@link #attach}.
+     */
+    public void start(Defer cleanUp) {
         new ClassLoaderMetrics().bindTo(registry);
         new JvmMemoryMetrics().bindTo(registry);
         var gc = new JvmGcMetrics();

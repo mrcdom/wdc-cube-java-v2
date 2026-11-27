@@ -41,7 +41,6 @@
   "receipt.total": "TOTAL:",
   "receipt.backToProducts": "Back to products",
   "alert.title": "Warning!",
-  "alert.uriNotAccessible": "The URI {uri} is not accessible",
   "connection.notConnected": "Not connected.",
   "connection.retryNow": "Retry now",
   "connection.reconnectingNow": "Reconnecting now...",

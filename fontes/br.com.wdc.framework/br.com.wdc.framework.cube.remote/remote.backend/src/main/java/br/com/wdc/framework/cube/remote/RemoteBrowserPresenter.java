@@ -27,6 +27,10 @@ import br.com.wdc.framework.cube.Scope;
  */
 public class RemoteBrowserPresenter extends AbstractPresenter<CubeApplication> {
 
+    /** The alert of an unexpected error; its argument, when present, is the cause's message. */
+    public static final int ALERT_UNEXPECTED_ERROR = -1;
+
+
     private static final Log LOG = Log.getLogger(RemoteBrowserPresenter.class);
 
     public static class BrowserScope extends Scope {
@@ -89,24 +93,24 @@ public class RemoteBrowserPresenter extends AbstractPresenter<CubeApplication> {
     // :: Alerts
 
     /**
-     * Shows the client the message of an unexpected error: what failed and the cause's message, as the local hosts
-     * do. The stack trace stays in the server's log.
+     * Shows the client an unexpected error: alert {@code -1}, with the cause's message as its only argument when there
+     * is one. The client words the alert in its user's language; the cause's message goes as the server has it. What
+     * failed ({@code msg}) and the stack trace stay in the server's log.
      */
     public void alertUnexpectedError(Log log, String msg, Throwable cause) {
         var causeMessage = cause != null ? cause.getMessage() : null;
-        String text;
-        if (StringUtils.isBlank(msg)) {
-            text = StringUtils.isBlank(causeMessage) ? "An unexpected error occurred" : causeMessage;
+        var logged = StringUtils.isBlank(msg) ? "Unexpected error" : msg;
+        if (cause != null) {
+            log.error(logged, cause);
         } else {
-            text = StringUtils.isBlank(causeMessage) ? msg : msg + ": " + causeMessage;
+            log.error(logged);
         }
 
-        if (cause != null) {
-            log.error(text, cause);
+        if (StringUtils.isBlank(causeMessage)) {
+            this.alert(ThrowingRunnable.noop(), ALERT_UNEXPECTED_ERROR);
         } else {
-            log.error(text);
+            this.alert(ThrowingRunnable.noop(), ALERT_UNEXPECTED_ERROR, causeMessage);
         }
-        this.alert(ThrowingRunnable.noop(), -1, text);
     }
 
     public void alert(ThrowingRunnable action, int code, Object... args) {

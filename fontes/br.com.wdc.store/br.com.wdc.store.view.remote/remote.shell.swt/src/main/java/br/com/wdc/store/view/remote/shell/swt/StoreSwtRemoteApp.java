@@ -211,6 +211,9 @@ public class StoreSwtRemoteApp implements SwtApp, RemoteViewContext {
 		}
 	}
 
+	/** The host's alert of an unexpected error; its argument, when present, is the cause's message. */
+	private static final int ALERT_UNEXPECTED_ERROR = -1;
+
 	/**
 	 * The host's alert (browser {@code alertId}/{@code alertArgs}): shown until dismissed, which tells the host (event 1
 	 * of the browser), whose alert action may run then.
@@ -230,11 +233,16 @@ public class StoreSwtRemoteApp implements SwtApp, RemoteViewContext {
 				args.add(String.valueOf(item));
 			}
 		}
-		var message = switch (alertId) {
-			case -2 -> I18n.format(StoreMessages.ALERT_URI_NOT_ACCESSIBLE, Map.of("uri", args.isEmpty() ? "" : args.get(0)));
-			default -> args.isEmpty() ? I18n.text(StoreMessages.ERROR_UNEXPECTED) : args.get(0);
-		};
-		var detail = args.size() > 1 ? args.get(1) : null;
+		var first = args.isEmpty() || args.get(0).isEmpty() ? null : args.get(0);
+		String message;
+		if (alertId == ALERT_UNEXPECTED_ERROR) {
+			message = first != null
+					? I18n.format(StoreMessages.ERROR_UNEXPECTED_WITH_CAUSE, Map.of("cause", first))
+					: I18n.text(StoreMessages.ERROR_UNEXPECTED);
+		} else {
+			// an application's own alert brings its text as its first argument
+			message = first != null ? first : I18n.text(StoreMessages.ERROR_UNEXPECTED);
+		}
 
 		this.display.asyncExec(() -> {
 			if (this.shell.isDisposed()) {
@@ -242,7 +250,7 @@ public class StoreSwtRemoteApp implements SwtApp, RemoteViewContext {
 			}
 			var box = new MessageBox(this.shell, SWT.ICON_WARNING | SWT.OK);
 			box.setText(I18n.text(StoreMessages.ALERT_TITLE));
-			box.setMessage(detail != null ? message + "\n\n" + detail : message);
+			box.setMessage(message);
 			box.open();
 			this.shownAlertId = 0;
 			this.submitEvent(HostClient.BROWSER_VSID, 1, Map.of());

@@ -51,6 +51,8 @@ It needs only Python's standard library, and prints PASS or FAIL for each check.
 
 The addresses can be changed with `STORE_NGINX`, `STORE_A`, `STORE_B` and `STORE_PROMETHEUS`.
 
+The CI workflow (`.github/workflows/ci.yml`) runs the same on every push and pull request to `main`: it stages the context from the build, generates fresh secrets, brings the setup up and runs `check.py`.
+
 ## A reference, not a deployment
 
 The setup is a reference to start from, not a production deployment:

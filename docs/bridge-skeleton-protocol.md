@@ -374,8 +374,8 @@ Events of regular views use codes `>= 0` defined by each view. Negative eventCod
 ### 10.2 Alerts (Browser View Fields)
 
 The Browser View scope may carry a server-commanded alert:
-- `alertId`: alert code; `-1` = unexpected error; `0` = none (after OK).
-- `alertArgs`: `string[]` of arguments (for the unexpected error: only the message — the stack trace stays in the server log).
+- `alertId`: alert code; `-1` = unexpected error; `0` = none (after OK); any other code is the application's.
+- `alertArgs`: `string[]` of arguments. For the unexpected error, at most one: the cause's message, as the server has it; the client words the alert in its user's language (with the cause, or without it when there is none). What failed and the stack trace stay in the server log. An application's own alert brings its text as its first argument.
 
 With `alertId != 0`, the client shows the alert and, when it is dismissed, fires event `1` (`onAlertOk`) on the Browser View.
 

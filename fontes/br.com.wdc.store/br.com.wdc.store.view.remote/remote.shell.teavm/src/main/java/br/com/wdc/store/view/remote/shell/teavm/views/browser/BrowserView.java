@@ -80,28 +80,27 @@ public class BrowserView extends AbstractRemoteView {
         // @formatter:on
     }
 
+    /** The host's alert of an unexpected error; its argument, when present, is the cause's message. */
+    private static final int ALERT_UNEXPECTED_ERROR = -1;
+
     /** The host's alert: shown until dismissed, which tells the host (its alert action may run then). */
     private VNode renderAppAlert(int code, List<String> args) {
+        var first = args.isEmpty() || args.get(0).isEmpty() ? null : args.get(0);
         String message;
-        String detail = null;
-        switch (code) {
-            case -1 -> {
-                message = args.isEmpty() ? I18n.text(StoreMessages.ERROR_UNEXPECTED) : args.get(0);
-                detail = args.size() > 1 ? args.get(1) : null;
-            }
-            case -2 -> {
-                message = I18n.text(StoreMessages.ALERT_URI_NOT_ACCESSIBLE, "uri", args.isEmpty() ? "" : args.get(0));
-                detail = args.size() > 1 ? args.get(1) : null;
-            }
-            default -> message = args.isEmpty() ? I18n.text(StoreMessages.ERROR_UNEXPECTED) : args.get(0);
+        if (code == ALERT_UNEXPECTED_ERROR) {
+            message = first != null
+                    ? I18n.text(StoreMessages.ERROR_UNEXPECTED_WITH_CAUSE, "cause", first)
+                    : I18n.text(StoreMessages.ERROR_UNEXPECTED);
+        } else {
+            // an application's own alert brings its text as its first argument
+            message = first != null ? first : I18n.text(StoreMessages.ERROR_UNEXPECTED);
         }
 
         // @formatter:off
         return div("alert-error").style("margin:16px").children(
           div().style("flex:1").children(
             div("font-bold text-sm").style("color:var(--app-error-text)").text(I18n.text(StoreMessages.ALERT_TITLE)),
-            span("text-sm").style("color:var(--app-error-text)").text(message),
-            detail != null ? div("text-xs mt-4").style("color:var(--app-error-text)").text(detail) : null),
+            span("text-sm").style("color:var(--app-error-text)").text(message)),
           span("text-sm font-medium cursor-pointer ml-4")
             .style("color:var(--app-accent)")
             .text(I18n.text(StoreMessages.ALERT_OK))

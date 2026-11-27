@@ -20,7 +20,6 @@ public final class StoreMessages {
 
     public static final String ALERT_OK = "alert.ok";
     public static final String ALERT_TITLE = "alert.title";
-    public static final String ALERT_URI_NOT_ACCESSIBLE = "alert.uriNotAccessible";
     public static final String APP_BY_WEDOCODE = "app.byWedocode";
     public static final String APP_NAME = "app.name";
     public static final String APP_STORE = "app.store";
@@ -119,7 +118,6 @@ public final class StoreMessages {
         Map<String, String> enus = new HashMap<String, String>();
         enus.put(ALERT_OK, "OK");
         enus.put(ALERT_TITLE, "Warning!");
-        enus.put(ALERT_URI_NOT_ACCESSIBLE, "The URI {uri} is not accessible");
         enus.put(APP_BY_WEDOCODE, "By WeDoCode");
         enus.put(APP_NAME, "WDC Store");
         enus.put(APP_STORE, "Store");
@@ -215,7 +213,6 @@ public final class StoreMessages {
         Map<String, String> ptbr = new HashMap<String, String>();
         ptbr.put(ALERT_OK, "OK");
         ptbr.put(ALERT_TITLE, "Aten\u00e7\u00e3o!");
-        ptbr.put(ALERT_URI_NOT_ACCESSIBLE, "O endere\u00e7o {uri} n\u00e3o est\u00e1 acess\u00edvel");
         ptbr.put(APP_BY_WEDOCODE, "Por WeDoCode");
         ptbr.put(APP_NAME, "WDC Store");
         ptbr.put(APP_STORE, "Loja");

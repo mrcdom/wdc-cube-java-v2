@@ -10,7 +10,6 @@ const String defaultLanguage = 'en-US';
 abstract final class MessageKeys {
   static const String alertOk = 'alert.ok';
   static const String alertTitle = 'alert.title';
-  static const String alertUriNotAccessible = 'alert.uriNotAccessible';
   static const String appByWedocode = 'app.byWedocode';
   static const String appName = 'app.name';
   static const String appStore = 'app.store';
@@ -108,7 +107,6 @@ const Map<String, Map<String, String>> _texts = {
   'en-US': {
     'alert.ok': 'OK',
     'alert.title': 'Warning!',
-    'alert.uriNotAccessible': 'The URI {uri} is not accessible',
     'app.byWedocode': 'By WeDoCode',
     'app.name': 'WDC Store',
     'app.store': 'Store',
@@ -204,7 +202,6 @@ const Map<String, Map<String, String>> _texts = {
   'pt-BR': {
     'alert.ok': 'OK',
     'alert.title': 'Atenção!',
-    'alert.uriNotAccessible': 'O endereço {uri} não está acessível',
     'app.byWedocode': 'Por WeDoCode',
     'app.name': 'WDC Store',
     'app.store': 'Loja',
