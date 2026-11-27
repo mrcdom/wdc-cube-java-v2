@@ -63,9 +63,10 @@ jobs:
         working-directory: fontes/br.com.wdc.store/br.com.wdc.store.view.remote/remote.shell.flutter/flutter.commons
         run: flutter test
 
+      # Codename One's CSS compiler draws in an AWT window: xvfb gives it a display
       - name: Codename One tests
         working-directory: fontes/br.com.wdc.store/br.com.wdc.store.view.remote/remote.shell.cn1
-        run: ./mvnw test -pl common,javase
+        run: xvfb-run -a ./mvnw test -pl common,javase
 
       # the modules were just installed: the TeaVM targets compile against them
       - name: Web frontends
