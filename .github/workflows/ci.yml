@@ -55,6 +55,10 @@ jobs:
         working-directory: fontes/br.com.wdc.store/br.com.wdc.store.view.remote/remote.shell.react
         run: npm test
 
+      - name: React bridge tests
+        working-directory: fontes/br.com.wdc.framework/br.com.wdc.framework.cube.remote/remote.bridge.react
+        run: npm test
+
       - name: Flutter tests
         working-directory: fontes/br.com.wdc.store/br.com.wdc.store.view.remote/remote.shell.flutter/flutter.commons
         run: flutter test

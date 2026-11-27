@@ -24,6 +24,22 @@
                 <artifactId>exec-maven-plugin</artifactId>
                 <version>3.7.0</version>
                 <executions>
+                    <!-- the bridge is taken from its sources (alias @wdc/remote-bridge-react): its own dependencies
+                         (@noble/*) resolve from its folder -->
+                    <execution>
+                        <id>npm-install-bridge</id>
+                        <phase>initialize</phase>
+                        <goals>
+                            <goal>exec</goal>
+                        </goals>
+                        <configuration>
+                            <executable>npm</executable>
+                            <workingDirectory>${project.basedir}/../../../br.com.wdc.framework/br.com.wdc.framework.cube.remote/remote.bridge.react</workingDirectory>
+                            <arguments>
+                                <argument>install</argument>
+                            </arguments>
+                        </configuration>
+                    </execution>
                     <!-- npm install -->
                     <execution>
                         <id>npm-install</id>
