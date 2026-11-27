@@ -39,6 +39,8 @@ cd fontes/.../remote.shell.react && npm install && npm run watch
 
 The four web frontends drop their artifacts in `work/frontend/<name>`; each one has its own `build.sh` in its source module, and `build-frontends.sh` only orchestrates the four. `work/frontend/{api.docs,openapi}` are static.
 
+**IDE and command line build apart**: the IDE (m2e: Eclipse, the VS Code Java extension) builds into `target/ide`, through the `ide` profile of the root poms (`fontes/pom.xml`, `framework-parent`, the CN1 pom), activated by the `m2e.version` property that only m2e sets. A command-line build never packages class files the IDE compiled, with errors, against a stale classpath.
+
 **TeaVM targets pitfall**: `remote.shell.teavm` and `teavm.web` compile against the JARs in `~/.m2`, not against the reactor — without a prior `mvn install`, they silently generate an app with the previous version of the domain (it opens normally and fails only on the call that changed). That is exactly why `build-frontends.sh` reinstalls by default.
 
 **Publishing the framework to Maven Central**: only `br.com.wdc.framework`, as `io.github.mrcdom.wdc.java:framework-*` — `cd fontes/br.com.wdc.framework && mvn -Prelease clean deploy` (details in the [framework README](fontes/br.com.wdc.framework/README.md#publishing-to-maven-central)). `framework-parent` does not inherit from the root pom, on purpose: that keeps the demos out of consumers' dependency resolution.

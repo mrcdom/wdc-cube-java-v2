@@ -79,6 +79,20 @@
 	</build>
 
 	<profiles>
+		<profile>
+			<!-- The IDE (m2e: Eclipse, the VS Code Java extension) builds into target/ide, not into target/: a build from the
+			     command line and the IDE never write the same class files, so neither packages the other's. m2e sets
+			     m2e.version; Maven does not. -->
+			<id>ide</id>
+			<activation>
+				<property>
+					<name>m2e.version</name>
+				</property>
+			</activation>
+			<build>
+				<directory>${project.basedir}/target/ide</directory>
+			</build>
+		</profile>
 		<!-- Central requires, per artifact: a sources jar, a javadoc jar and a GPG signature -->
 		<profile>
 			<id>release</id>
