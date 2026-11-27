@@ -31,8 +31,9 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          # no npm cache: the repository keeps no package-lock.json
           node-version: "24"
+          cache: npm
+          cache-dependency-path: "**/package-lock.json"
 
       - uses: subosito/flutter-action@v2
         with:
@@ -107,16 +108,30 @@ jobs:
             echo "STORE_REMOTE_SIGNING_KEY=$(openssl rand -base64 32 | tr '+/' '-_' | tr -d '=')"
           } > .env
 
-      # the bundle of web components a local build puts in the web cache is not in the repository: the image gets an
-      # empty web cache (an artifact drops empty folders)
-      - name: Web cache
-        run: mkdir -p build/context/web-cache
-
       - name: Start
         run: docker compose up -d --build --wait
 
       - name: Check
         run: python3 check.py
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+
+      # the web frontends in Chromium, through nginx
+      - name: Browser checks
+        working-directory: fontes/br.com.wdc.store/br.com.wdc.store.docker/browser
+        run: |
+          npm ci --no-audit --no-fund
+          npx playwright install --with-deps chromium
+          npx playwright test
+
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: browser-traces
+          path: fontes/br.com.wdc.store/br.com.wdc.store.docker/browser/test-results
+          retention-days: 7
 
       - name: Logs
         if: failure()

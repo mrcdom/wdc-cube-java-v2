@@ -1,0 +1,12 @@
+{
+  "name": "wdc-store-browser-checks",
+  "private": true,
+  "description": "Browser checks of the web frontends, through nginx, against the compose setup",
+  "type": "module",
+  "scripts": {
+    "test": "playwright test"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.65.1"
+  }
+}

@@ -19,7 +19,7 @@
 /// **Synchronisation protocol**: on WebSocket bootstrap the client sends all
 /// keys from both scopes under the `"storage"` field; the server sends deltas
 /// back in `"storage"` fields of response envelopes.
-library client_storage;
+library;
 
 import 'dart:collection';
 
@@ -95,16 +95,12 @@ class DelegateClientStorage implements ClientStorage {
   final ClientStorage Function() _secureFactory;
 
   DelegateClientStorage({
-    required StorageGet get,
-    required StorageSet set,
-    required StorageRemove remove,
-    required StorageAll all,
-    required ClientStorage Function() secureFactory,
-  }) : _get = get,
-       _set = set,
-       _remove = remove,
-       _all = all,
-       _secureFactory = secureFactory;
+    required this._get,
+    required this._set,
+    required this._remove,
+    required this._all,
+    required this._secureFactory,
+  });
 
   ClientStorage? _secure;
 

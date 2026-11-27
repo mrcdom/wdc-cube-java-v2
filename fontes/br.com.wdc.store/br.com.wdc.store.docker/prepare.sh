@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 #
 # Builds what the image takes and stages it in build/context, the part of the Docker build context the Dockerfile
-# copies: the backend's fat JAR, the web frontends of work/frontend and the web cache's own bundle.
+# copies: the backend's fat JAR and the web frontends of work/frontend.
 #
 # Usage:
 #   ./prepare.sh                    # mvn clean install (Java 25), then every web frontend, then stage
@@ -43,12 +43,4 @@ rm -rf "$CONTEXT"
 mkdir -p "$CONTEXT"
 cp "$JAR" "$CONTEXT/backend.jar"
 cp -R "$ROOT_DIR/work/frontend" "$CONTEXT/frontend"
-# the web cache's own bundle of the Spectrum web components, made by a local build (teavm.web loads it); the rest of
-# the web cache is fetched from its CDNs on first use
-mkdir -p "$CONTEXT/web-cache"
-if [ -d "$ROOT_DIR/work/data/web-cache/swc-bundle" ]; then
-  cp -RL "$ROOT_DIR/work/data/web-cache/swc-bundle" "$CONTEXT/web-cache/swc-bundle"
-else
-  echo "Warning: work/data/web-cache/swc-bundle not found: teavm.web will miss its components" >&2
-fi
 echo "Docker build context ready: $CONTEXT"

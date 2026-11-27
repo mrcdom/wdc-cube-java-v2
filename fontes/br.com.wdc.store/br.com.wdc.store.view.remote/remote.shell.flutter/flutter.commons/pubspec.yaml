@@ -10,6 +10,7 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  material_ui: ^1.11.0
   remote_bridge_flutter:
     path: ../../../../br.com.wdc.framework/br.com.wdc.framework.cube.remote/remote.bridge.flutter
   web_socket_channel: ^3.0.2

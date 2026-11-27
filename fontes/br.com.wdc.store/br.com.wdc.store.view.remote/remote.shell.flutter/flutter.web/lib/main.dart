@@ -2,7 +2,7 @@ import 'dart:js_interop';
 
 import 'package:web/web.dart' as web;
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_commons/flutter_commons.dart';
 import 'package:flutter_web_plugins/flutter_web_plugins.dart';
 

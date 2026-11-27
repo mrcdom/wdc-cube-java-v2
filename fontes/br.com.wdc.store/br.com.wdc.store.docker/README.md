@@ -28,7 +28,7 @@ Then open http://localhost:18080. The landing page links every web frontend. Sig
 
 ## How it is built
 
-- **The image takes what the build made.** It contains the backend's fat JAR, the web frontends of `work/frontend` and the bundle of web components that a local build puts in the web cache (`work/data/web-cache/swc-bundle`, which teavm.web loads), which the [`Dockerfile`](Dockerfile) copies onto a Temurin 25 JRE. The rest of the web cache is fetched from its CDNs on first use. There is no JDK, Maven, Node or Flutter in it.
+- **The image takes what the build made.** It contains the backend's fat JAR and the web frontends of `work/frontend`, which the [`Dockerfile`](Dockerfile) copies onto a Temurin 25 JRE. The web cache (fonts, icons) is fetched from its CDNs on first use. There is no JDK, Maven, Node or Flutter in it.
 - **Configuration comes from the environment.** At start, [`entrypoint.sh`](entrypoint.sh) writes the work directory's `config/application.toml` from the environment, so no secret goes into the image. Logs go to the console ([`logback.xml`](logback.xml)), where `docker compose logs` reads them.
 - **The secrets live in `.env`,** which git ignores and `.dockerignore` keeps out of the build context. Prometheus reads the token as a compose secret.
 - **Every instance has the same secrets.** They share `security.jwt.secret`, so each one accepts the others' tokens and the mesh connects. They share `remote.signingKey`, so a page served by one instance and its socket on the other accept the same session id.
@@ -51,7 +51,18 @@ It needs only Python's standard library, and prints PASS or FAIL for each check.
 
 The addresses can be changed with `STORE_NGINX`, `STORE_A`, `STORE_B` and `STORE_PROMETHEUS`.
 
-The CI workflow (`.github/workflows/ci.yml`) runs the same on every push and pull request to `main`: it stages the context from the build, generates fresh secrets, brings the setup up and runs `check.py`.
+## Browser checks
+
+[`browser/`](browser) opens the web frontends in Chromium through nginx, with Playwright: React signs in, buys a product and sees the receipt; the TeaVM remote shell signs in and shows Home; teavm.web signs in, buys and sees the receipt. With the setup up:
+
+```bash
+cd browser
+npm install
+npx playwright install chromium
+npx playwright test         # STORE_NGINX changes the address
+```
+
+The CI workflow (`.github/workflows/ci.yml`) runs the same on every push and pull request to `main`: it stages the context from the build, generates fresh secrets, brings the setup up, and runs `check.py` and the browser checks.
 
 ## A reference, not a deployment
 

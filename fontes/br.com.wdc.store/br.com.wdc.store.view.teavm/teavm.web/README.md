@@ -104,6 +104,8 @@ The layout adapts to small screens (iPhone SE) using responsive utility classes.
 JAVA25_HOME=<path-to-jdk-25> ./build.sh --full
 ```
 
+Besides Maven, the build needs Node: `build.sh` bundles the Spectrum Web Components (`@spectrum-web-components/bundle`, pinned in `package.json`) with esbuild into `js/swc-elements.js` (`npm run build:swc`).
+
 TeaVM compiles against the JARs in `~/.m2`, not against the reactor: without reinstalling `presentation`/`persistence.client` first, the app silently ships the previous version of the domain. `build-frontends.sh` reinstalls them by default.
 
 ### Output
@@ -115,11 +117,13 @@ graph TD
     css["css/app.css<br/><small>Compiled from src/main/scss/app.scss</small>"]
     js["js/"]
     appJs["app.js<br/><small>Java compiled to JavaScript</small>"]
+    swcJs["swc-elements.js<br/><small>The Spectrum Web Components, one self-contained file</small>"]
 
     root --> indexHtml
     root --> css
     root --> js
     js --> appJs
+    js --> swcJs
 ```
 
 ## Run
@@ -140,6 +144,7 @@ graph TD
     buildsh["build.sh<br/><small>Module build script</small>"]
     watchsh["watch.sh<br/><small>Rebuild on change</small>"]
     pom["pom.xml<br/><small>Maven configuration + TeaVM and Sass plugins</small>"]
+    pkg["package.json<br/><small>esbuild + the Spectrum Web Components bundle (build:swc)</small>"]
     srcMain["src/main/"]
     java["java/br/com/wdc/store/view/teavm/"]
     main["Main.java"]
@@ -153,6 +158,7 @@ graph TD
     root --> buildsh
     root --> watchsh
     root --> pom
+    root --> pkg
     root --> srcMain
     srcMain --> java
     srcMain --> scss

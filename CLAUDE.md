@@ -37,7 +37,9 @@ cd fontes && mvn test                   # tests
 cd fontes/.../remote.shell.react && npm install && npm run watch
 ```
 
-**CI** (`.github/workflows/ci.yml`, on every push and pull request to `main`): `mvn clean install` with its tests, the React, Flutter and Codename One tests, the four web frontends, then the compose setup with two instances and its `check.py`.
+**CI** (`.github/workflows/ci.yml`, on every push and pull request to `main`): `mvn clean install` with its tests, the React, Flutter and Codename One tests, the four web frontends, then the compose setup with two instances, its `check.py` and the browser checks (Playwright: React, the TeaVM remote shell, teavm.web).
+
+**npm lockfiles are committed** (`package-lock.json` of the React shell, the React bridge, teavm.web, the TeaVM shell's crypto build and the browser checks): the builds install with `npm ci`, exactly what is locked; to change a dependency, `npm install <pkg>@<version>` and commit the lockfile with it.
 
 The four web frontends drop their artifacts in `work/frontend/<name>`; each one has its own `build.sh` in its source module, and `build-frontends.sh` only orchestrates the four. `work/frontend/{api.docs,openapi}` are static.
 

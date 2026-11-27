@@ -45,6 +45,9 @@ public final class RemoteApplicationRegistry<T extends RemoteApplication> {
 
     private final CopyOnWriteArrayList<Consumer<String>> createdListeners = new CopyOnWriteArrayList<>();
 
+    /** The id of the session this thread is making, while the factory runs. */
+    private final ThreadLocal<String> creating = new ThreadLocal<>();
+
     /** Told after each client message the host handled: how long it took, and whether it failed. */
     @FunctionalInterface
     public interface MessageListener {
@@ -203,7 +206,13 @@ public final class RemoteApplicationRegistry<T extends RemoteApplication> {
         var created = new boolean[1];
         var app = instanceMap.computeIfAbsent(appId, id -> {
             created[0] = true;
-            return factory.apply(id, request);
+            var outer = creating.get();
+            creating.set(id);
+            try {
+                return factory.apply(id, request);
+            } finally {
+                creating.set(outer);
+            }
         });
         if (created[0]) {
             for (var listener : createdListeners) {
@@ -217,7 +226,15 @@ public final class RemoteApplicationRegistry<T extends RemoteApplication> {
         return app;
     }
 
+    /**
+     * Takes the session out of the registry. A session being made (its factory releasing it after a failure) is not in
+     * the registry yet: there is nothing to take out, and touching the map while it is being filled would hide the
+     * failure behind the map's own.
+     */
     public T remove(String appId) {
+        if (appId != null && appId.equals(creating.get())) {
+            return null;
+        }
         return instanceMap.remove(appId);
     }
 

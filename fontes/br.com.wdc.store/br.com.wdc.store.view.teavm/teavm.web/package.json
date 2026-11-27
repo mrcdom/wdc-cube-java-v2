@@ -1,0 +1,13 @@
+{
+  "name": "teavm.web-swc-elements",
+  "private": true,
+  "description": "Builds js/swc-elements.js, the Spectrum Web Components teavm.web draws with, as one self-contained file",
+  "type": "module",
+  "scripts": {
+    "build:swc": "esbuild src/main/js/swc-elements.mjs --bundle --format=esm --minify --outfile=../../../../work/frontend/teavm.web/js/swc-elements.js"
+  },
+  "devDependencies": {
+    "@spectrum-web-components/bundle": "0.40.1",
+    "esbuild": "0.25.9"
+  }
+}

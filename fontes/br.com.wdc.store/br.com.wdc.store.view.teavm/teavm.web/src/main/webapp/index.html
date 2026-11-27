@@ -15,19 +15,9 @@
     <!-- Google Fonts: Inter for modern UI -->
     <link href="/web-cache/fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 
-    <!-- Import map: unify Lit versions (SWC uses lit@2, @lit-labs/virtualizer uses lit@3).
-         Note: not needed when using the self-contained swc-bundle/elements.js (no external imports). -->
-    <script type="importmap">
-    {
-      "imports": {}
-    }
-    </script>
-
-    <!-- Spectrum Web Components — self-contained esbuild bundle (no external imports).
-         On desktop the backend serves this from /web-cache/swc-bundle/elements.js.
-         On mobile (Tauri) it is embedded as a static asset in the app.
-         Generated via: npx esbuild @spectrum-web-components/bundle@0.40.1/elements.js --bundle --format=esm --minify -->
-    <script src="/web-cache/swc-bundle/elements.js" type="module"></script>
+    <!-- Spectrum Web Components: one self-contained file (no external imports), made by build.sh
+         (npm run build:swc, esbuild over @spectrum-web-components/bundle) next to app.js. -->
+    <script src="js/swc-elements.js" type="module"></script>
 
     <!-- App styles -->
     <link href="css/app.css" rel="stylesheet">
