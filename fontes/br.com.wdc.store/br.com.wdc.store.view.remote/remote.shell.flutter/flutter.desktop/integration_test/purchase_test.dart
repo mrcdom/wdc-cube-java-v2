@@ -4,7 +4,7 @@
 // The texts come from the catalog, so it passes in any of the device's languages.
 //
 //   flutter test integration_test -d <device> [--dart-define=WDC_ENDPOINT=http://host:port]
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 import 'package:flutter_commons/flutter_commons.dart';
