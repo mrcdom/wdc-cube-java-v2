@@ -15,7 +15,7 @@ A record is not edited once accepted, except to fix a mistake or a link. A decis
 | [0007](0007-resource-calls-named-by-http-verbs.md) | Resource calls are named by HTTP-like verbs; writes open the transaction | Accepted |
 | [0008](0008-read-only-and-read-write-repositories.md) | Read-only and read-write repository contracts | Accepted |
 | [0009](0009-programmatic-transactions-per-module.md) | Programmatic CMT-style transactions, dual JTA/JDBC, one TransactionService per module | Accepted |
-| [0010](0010-client-driven-remote-transactions.md) | Client-driven remote transactions over REST | Accepted |
+| [0010](0010-client-driven-remote-transactions.md) | Client-driven remote transactions over REST | Accepted; owner rule superseded by 0031 |
 | [0011](0011-persistence-with-jooq.md) | Persistence with jOOQ's type-safe DSL, no SQL strings | Accepted |
 | [0012](0012-criteria-are-fields-of-criterion.md) | Criteria are fields of `Criterion`; requests accumulate with AND; alternative groups are server-side only; an empty `in` matches no row | Accepted |
 | [0013](0013-dependency-injection-without-a-framework.md) | Dependency injection without a framework: `BEAN` holders filled by composition roots | Accepted |

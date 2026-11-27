@@ -166,9 +166,6 @@ Open: **http://localhost:8090** (default of `server.port`)
 The module's `work/config/application.toml` lets you configure:
 
 ```toml
-[app]
-basedir = ".."   # required; resolved relative to the config file's directory
-
 [server]
 # port = 8090
 

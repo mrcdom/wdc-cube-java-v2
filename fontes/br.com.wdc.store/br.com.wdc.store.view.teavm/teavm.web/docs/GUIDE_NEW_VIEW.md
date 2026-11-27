@@ -117,7 +117,7 @@ Add `@use 'wishlist/wishlist';` to `teavm.web/src/main/scss/app.scss`. The Maven
 | **Scope access** | The Scope received in the constructor, passed to the shared view | `ViewScope` (JSON), adapted into a Scope instance |
 | **Action invocation** | `safeAction("ctx", scope.onXxx::run)` | `submit(EVENT_CODE)` |
 | **Data passing** | Direct method arguments | `setFormField(key, value)` |
-| **Registration** | `SCOPE_VIEWS.register(XxxScope.class, View::new)` | `app.registerView(VIEW_ID, View::new)` (Main.java) |
+| **Registration** | `VIEWS.put(XxxScope.class, (app, s) -> new XxxView(app, (XxxScope) s))` in `StoreTeaVMApplication` | `app.registerView(VIEW_ID, View::new)` (Main.java) |
 | **VIEW_ID** | Not needed (binding by the scope class) | Required (`XxxScope.CLASS_ID`) |
 | **Constructor** | Receives `(app, XxxScope)` | Receives `String vsid` |
 | **Thread safety** | `safeAction()` runs in a TeaVM Thread | The WS protocol is serial |
@@ -180,7 +180,7 @@ The same guide has the `Sel` pattern (`SelUtility`/`SelComponents`/`SelIcons`) a
 - [ ] Shared view `XxxSharedView extends SharedVDomView` in `teavm.commons/.../views/<x>/`
 - [ ] View extends `AbstractVDomView<XxxScope>`, constructor `(StoreTeaVMApplication app, XxxScope scope)` calls `super(instanceId, app, scope)`
 - [ ] Shared view bound: `scopeSupplier = () -> scope`, each callback wrapped in `safeAction()`
-- [ ] View registered in the catalog: `.register(XxxScope.class, XxxView::new)` in the `SCOPE_VIEWS` of `StoreTeaVMApplication`
+- [ ] View registered in the catalog: `VIEWS.put(XxxScope.class, (app, s) -> new XxxView(app, (XxxScope) s))` in `StoreTeaVMApplication`
 - [ ] Texts from the catalog (keys in every language), colors from the design tokens
 - [ ] `_x.scss` partial added to `src/main/scss/app.scss`
 - [ ] `./work/bin/build-frontends.sh teavm.web` builds without errors

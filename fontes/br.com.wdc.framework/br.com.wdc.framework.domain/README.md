@@ -25,7 +25,7 @@ Nothing else: no JDBC, no jOOQ, no HTTP client. It compiles for the JVM and for 
 | `resource` | The resource calls: an action on a resource as an object, named by an HTTP-like verb (below) |
 | `security` | `SecurityContext` (who the requester is, and their roles), `AuthenticationService`, password and crypto helpers |
 | `security.policy` | The data access policy of an API open to external clients: `DataPolicy` (grants per role), `DataGrant` (rows, fields read, masked, written), `DataAccess` (applies them to a request and to each returned row), `RowScope`, `Mask`, `EntityDescriptor` — how to use it: [Security Guide](../docs/security-guide.md); design: [Security Architecture](../../../docs/security-architecture.md) |
-| `config` | `AppConfig` |
+| `config` | `AppConfig` — the TOML configuration the application points it to, with `application.local.toml` over it; `getList` reads one-line arrays |
 | `exception` | `BusinessException`, `AccessDeniedException`, `InvalidRequestException`, the transaction exceptions |
 
 ## Resource calls

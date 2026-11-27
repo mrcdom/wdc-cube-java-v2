@@ -27,5 +27,7 @@ It contains only the entry point and the application wiring. All view logic live
 
 ```bash
 cd fontes && mvn clean package -pl br.com.wdc.store/br.com.wdc.store.view.swt/swt.desktop -am
-java -jar target/swt.desktop-1.0.0.jar
+cd br.com.wdc.store/br.com.wdc.store.view.swt/swt.desktop
+# -XstartOnFirstThread on macOS only (SWT/Cocoa runs the UI on the main thread); the work directory is required
+java -XstartOnFirstThread -jar target/swt.desktop-1.0.0.jar --workdir=work
 ```

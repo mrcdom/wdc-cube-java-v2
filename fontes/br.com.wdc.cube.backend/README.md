@@ -80,7 +80,7 @@ peers = ["ws://store-a:8080", "ws://store-b:8080"]
 What the instances share, what each keeps in memory and how to route them: [running-several-instances.md](../../docs/running-several-instances.md); a compose setup with two instances: [br.com.wdc.store.docker](../br.com.wdc.store/br.com.wdc.store.docker/README.md).
 
 ### CORS
-Configured in `[server]`: `cors.allowAll` reflects any origin (development); otherwise only `cors.allowedHosts` is accepted. `cors.allowCredentials` defaults to `true`.
+Configured in `[server]`: `cors.allowAll` reflects any origin (development); otherwise only `cors.allowedHosts` is accepted. `cors.allowCredentials` defaults to `true`. A request whose `Origin` names the host and port it was sent to is the server's own and needs no entry (`SameOriginFilter`): a page served here loads its scripts and calls the API at whatever address the server is reached, behind a proxy included.
 
 ### Development mode
 With `server.devMode = true`, the server registers the development endpoints: live reload (`/__dev/ws`, `/__dev/notify`), database reset, heap and GC.

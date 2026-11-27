@@ -15,7 +15,7 @@ graph TD
     domain["domain<br/><small>Repository, criteria, transactions, resource calls</small>"]
     persistence["persistence<br/><small>Transactions over DataSource/JTA</small>"]
     jooq["jooq<br/><small>JOOQ query builder + JSON projection</small>"]
-    cube["cube<br/><small>Cube MVP engine (presenters, views, navigation)</small>"]
+    cube["cube<br/><small>Cube MVP engine (presenters, scopes, navigation)</small>"]
     cubeRemote["cube.remote<br/><small>Remote protocol (backend + bridges)</small>"]
 
     fw --> deps
@@ -39,7 +39,7 @@ graph TD
 | [`domain`](br.com.wdc.framework.domain/) | Generic domain abstractions — `Repository`, `Page`, criteria, projections, `TransactionService`, security, and the resource calls (`ResourceQuery`, `ResourceCreate`/`Save`/`Update`/`Delete`: an action on a resource as an object, named by an HTTP-like verb) |
 | [`persistence`](br.com.wdc.framework.persistence/) | Neutral persistence support (`javax.sql.DataSource` + `jakarta.transaction`): `TransactionServiceImpl`/`TransactionScope` (JTA or plain JDBC) and the server side of client-driven remote transactions (`RemoteTransactionCoordinator`) |
 | [`jooq`](br.com.wdc.framework.jooq/) | Declarative query builder over JOOQ with JSON projection and multi-database dialects |
-| [`cube`](br.com.wdc.framework.cube/) | Cube MVP pattern engine — hierarchical presenters, views, slots, intent-based navigation |
+| [`cube`](br.com.wdc.framework.cube/) | Cube MVP pattern engine — hierarchical presenters, scopes, slots, intent-based navigation; no view concept (drawing a scope is up to each rendering technology) |
 | [`cube.remote`](br.com.wdc.framework.cube.remote/) | Remote communication protocol — server (Javalin/WebSocket) and bridges for the clients (Java, React, TeaVM, Flutter) |
 
 ---

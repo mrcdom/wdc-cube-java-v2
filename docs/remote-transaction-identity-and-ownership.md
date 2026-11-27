@@ -267,8 +267,8 @@ generated per process — otherwise every id/token issued before the restart fai
 rejection). It has to be **stable** (config / secret store), like any JWT key.
 
 **In-flight transactions:** the coordinator's registry is in memory — a restart **loses all** open
-transactions. The client gets "unknown/expired tx" on the next `commit`; it is the **same failure mode as
-the *reaper*** (idle timeout), and the remote tx API client contract must already account for "my tx is
+transactions. The client gets **410 Gone** (`UnknownTransactionException`) on the next call of the transaction; it is the
+**same failure mode as the *reaper*** (idle timeout), and the remote tx API client contract must already account for "my tx is
 gone → I redo the block". A restart is the "all at once" version of that. It is not recoverable in
 practice (the connection/locks are gone).
 
@@ -308,10 +308,9 @@ the transactions it runs.
 > **Question:** `X-Client-Id` is self-asserted by the client. Can a third party forge an id? Can it be
 > detected and discarded?
 
-> This analysis assumes the **proposed composite key** (`userId:clientId`). In the **current** state, the
-> authenticated owner is `user:<userId>` and `X-Client-Id` is **ignored** when there is a login — so
-> forging it has no effect at all in authenticated mode (the anonymous case only exists with security
-> entirely disabled).
+> The owner is the composite key `user:<userId>:<clientId>` ([ADR 0031](adr/0031-remote-transaction-owned-by-user-and-client.md)):
+> a forged `X-Client-Id` stays within the forger's own user, so it can never reach another user's
+> transaction (the anonymous `anon:<clientId>` case only exists with security entirely disabled).
 
 ### In the stateless design, there is no structural detection — and none is needed
 

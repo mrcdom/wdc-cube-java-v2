@@ -36,7 +36,7 @@ graph LR
    - Invokes `applyParameters(intent, initialization, deepest)` on each presenter.
    - Releases the presenters that are not part of the hierarchy (calls `release()`, deepest first).
    - Calls `app.updateHistory()` so the host republishes the address.
-4. The rendering technology draws the root presenter's scope; each of its views asks for the views of the scopes it holds while it draws, and lets go of the ones it no longer holds. When it starts drawing a scope it installs the scope's updater (`scope.setUpdater(...)`), called when a scope `Prop` changes, and takes it back (`scope.clearUpdater(...)`) when it stops. `commitComputedState()` (derived state) is not part of the navigation: the remote host calls it on all presenters (`CubeApplication.commitComputedState()`) before writing the dirty scopes.
+4. The rendering technology draws the root presenter's scope; each of its views asks for the views of the scopes it holds while it draws, and lets go of the ones it no longer holds. When it starts drawing a scope it installs the scope's updater (`scope.setUpdater(...)`), called when a scope `Prop` changes, and takes it back (`scope.clearUpdater(...)`) when it stops. `commitComputedState()` (derived state) is not part of the navigation: every host calls it on all presenters (`CubeApplication.commitComputedState()`) once per paint, before drawing — the remote host before writing the dirty scopes, and Vaadin, SWT and teavm.web before their own drawing (ADR 0022).
 
 ---
 

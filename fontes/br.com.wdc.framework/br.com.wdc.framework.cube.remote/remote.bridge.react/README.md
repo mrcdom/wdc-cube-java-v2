@@ -67,6 +67,8 @@ Web Crypto exists only in secure contexts (HTTPS or localhost); over plain HTTP 
 
 ## Tests
 
+An application that takes the bridge from its sources (an alias to `src/bridge/index.tsx`, as the WDC Store's React shell does) resolves the bridge's own dependencies (`@noble/*`) from this folder: run `npm install` here before building it (the shell's pom does).
+
 ```bash
 npm install
 npm test        # Vitest: the client conformance fixtures, the crypto (both implementations), the connection lifecycle
