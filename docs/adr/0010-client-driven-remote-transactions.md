@@ -1,7 +1,7 @@
 # 0010. Client-driven remote transactions over REST
 
 - **Date:** 2026-06-19 (begin/commit/rollback over REST); 2026-06-23 (atomicity guard and lifecycle hardening)
-- **Status:** Accepted
+- **Status:** Accepted; the owner rule is superseded by [0031](0031-remote-transaction-owned-by-user-and-client.md)
 
 ## Context
 

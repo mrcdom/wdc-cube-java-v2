@@ -4,6 +4,10 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -20,6 +24,7 @@ import br.com.wdc.store.domain.purchase.PurchaseCriteria;
 import br.com.wdc.store.domain.purchaseitem.PurchaseItemCriteria;
 import br.com.wdc.store.domain.user.UserCriteria;
 import br.com.wdc.store.persistence.rest.doc.RepositoryApiDocs;
+import br.com.wdc.store.scripts.codegen.GenerateOpenApi;
 
 /**
  * Guardrail for the OpenAPI document.
@@ -30,13 +35,31 @@ import br.com.wdc.store.persistence.rest.doc.RepositoryApiDocs;
  * is valid JSON, that no reference points to a nonexistent schema, and that the schemas of the current format are
  * there.
  * </p>
+ *
+ * <p>
+ * Comparing the document with the domain cannot tell a change that removes a field from both at once: they still
+ * agree. The third source is the contract itself, committed in {@code docs/openapi.json} ({@code GenerateOpenApi}):
+ * any change to the API shows there as a diff, and is accepted by generating it again.
+ * </p>
  */
 public class OpenApiSpecTest {
 
     private static final Pattern REF = Pattern.compile("\"\\$ref\"\\s*:\\s*\"#/components/schemas/([^\"]+)\"");
 
+    /** {@code fontes/}, from this module's folder. */
+    private static final Path FONTES = Path.of("../..").toAbsolutePath().normalize();
+
     private static JsonObject spec() {
         return JsonParser.parseString(RepositoryApiDocs.toJson("/api")).getAsJsonObject();
+    }
+
+    @Test
+    public void theCommittedContractMatchesTheCode() throws IOException {
+        for (var file : GenerateOpenApi.render(FONTES).entrySet()) {
+            var onDisk = Files.readString(FONTES.resolve(file.getKey()).normalize(), StandardCharsets.UTF_8);
+            assertEquals(file.getKey() + " differs from what the code describes: the API changed. Review the change and"
+                    + " run GenerateOpenApi to accept it", file.getValue(), onDisk);
+        }
     }
 
     @Test

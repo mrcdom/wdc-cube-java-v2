@@ -36,5 +36,6 @@ A record is not edited once accepted, except to fix a mistake or a link. A decis
 | [0028](0028-ui-texts-in-one-catalog.md) | The UI texts in one catalog per language, translated by the views from keys | Accepted |
 | [0029](0029-sessions-in-the-database-and-a-mesh-between-instances.md) | Sessions in the database, held in memory once read; the instances tell each other over a WebSocket mesh | Accepted |
 | [0030](0030-compose-setup-with-two-instances.md) | A compose setup with two instances, its image made from what Maven built | Accepted |
+| [0031](0031-remote-transaction-owned-by-user-and-client.md) | A remote transaction belongs to the user's client context, not to the user alone | Accepted |
 
 New record: copy the shape of an existing one (`# NNNN. <decision as a sentence>`, Date, Status, Context, Decision, Consequences, and Alternatives considered when there were real ones), take the next number, and add it to this table.

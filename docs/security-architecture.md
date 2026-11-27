@@ -277,7 +277,7 @@ The authentication token of a remote host — the persistent token — is kept i
 
 ## Remote Transactions
 
-A REST client can make several calls atomic (`/api/tx/begin`, `commit`, `rollback`, with the `X-Tx-Id` header). A transaction belongs to its owner — `user:<id>` when authenticated, `anon:<X-Client-Id>` without security — and a write without the header while its owner has a transaction open is refused, so a lost header cannot split an atomic block. The ownership model and its evolution: [remote-transaction-identity-and-ownership.md](remote-transaction-identity-and-ownership.md).
+A REST client can make several calls atomic (`/api/tx/begin`, `commit`, `rollback`, with the `X-Tx-Id` header). A transaction belongs to the client context that opened it, within the user's namespace — `user:<id>:<X-Client-Id>` when authenticated, `anon:<X-Client-Id>` without security — and a write without the header while that client has a transaction open is refused, so a lost header cannot split an atomic block. The ownership model and its evolution: [remote-transaction-identity-and-ownership.md](remote-transaction-identity-and-ownership.md).
 
 ---
 
