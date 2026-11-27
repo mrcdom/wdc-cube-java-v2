@@ -129,8 +129,9 @@ if $needs_maven_modules && ! $SKIP_INSTALL; then
     else
         echo "=== Installing Maven modules (framework + store) ==="
         echo "    Without this TeaVM would compile against the previous ~/.m2 — use --skip-install if you know it is up to date."
-        JAVA_HOME=$JAVA25_HOME mvn -f "$FONTES/br.com.wdc.framework/pom.xml" install -DskipTests -q || exit 1
-        JAVA_HOME=$JAVA25_HOME mvn -f "$FONTES/br.com.wdc.store/pom.xml" install \
+        # clean: an IDE that builds into the same target/ may have left class files with compile errors there
+        JAVA_HOME=$JAVA25_HOME mvn -f "$FONTES/br.com.wdc.framework/pom.xml" clean install -DskipTests -q || exit 1
+        JAVA_HOME=$JAVA25_HOME mvn -f "$FONTES/br.com.wdc.store/pom.xml" clean install \
             -pl br.com.wdc.store.domain,br.com.wdc.store.persistence,:persistence.client,br.com.wdc.store.presentation \
             -DskipTests -q || exit 1
     fi
