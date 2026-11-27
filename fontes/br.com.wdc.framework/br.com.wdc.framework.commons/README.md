@@ -16,7 +16,7 @@ Utility library shared by all the other framework modules and by the WDC Store a
 | `http` | `HttpTransport` — HTTP transport abstraction |
 | `lang` | `CoerceUtils` — coercive conversion of primitive types |
 | `log` | Cross-platform logging facade (`Log`, `JulLogFactory`, `Slf4jLogFactory`) |
-| `security` | `RSA` — RSA cryptography operations |
+| `security` | `ChannelCrypto` — the remote channel's primitives: ECDH P-256, HKDF-SHA256, AES-256-GCM, HMAC-SHA256 |
 | `serialization` | Extensible binary serialization: `Externalizable`, `EntityGraph`, `ExtensibleObjectInput/Output`, `JsonStream*`, `MapOrList*`, `KeyedEntity`, `SerializationToken` |
 | `sql` | `SqlDataSource`, `SqlDataSourceDelegate` — SQL connection abstraction |
 | `storage` | `ClientStorage`, `InMemoryClientStorage`, `PreferencesClientStorage`, `EncryptedPreferencesClientStorage` — local key-value storage with AES-256-GCM encryption support |

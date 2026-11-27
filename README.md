@@ -8,6 +8,10 @@ This project serves as an **architectural reference** for new projects, demonstr
 📄 [Data Layer — Domain, Persistence and REST API](docs/data-layer.md)  
 📄 [Remote Transaction — Client Identity and Transaction Ownership](docs/remote-transaction-identity-and-ownership.md)  
 📄 [Security Architecture — Trust Boundaries, Authentication and Data Access Policies](docs/security-architecture.md)  
+📄 [Bridge/Skeleton Protocol — the remote views on the wire](docs/bridge-skeleton-protocol.md)  
+📄 [Running Several Instances — what they share, what each keeps, how to route them](docs/running-several-instances.md)  
+📄 [Throughput and Memory Analysis](docs/throughput-and-memory-analysis.md)  
+📄 [REST API contract — OpenAPI document](docs/openapi.json)  
 📄 [Securing an Application with the WDC Framework — Guide](fontes/br.com.wdc.framework/docs/security-guide.md)  
 📄 [Architecture Decision Records — why the code is the way it is](docs/adr/README.md)
 
@@ -65,7 +69,7 @@ graph TD
 
     subgraph Framework["br.com.wdc.framework"]
         commons["commons<br/><small>Utilities, FP, serialization, SQL, crypto, log</small>"]
-        cube["cube<br/><small>Cube MVP: presenters, views, navigation</small>"]
+        cube["cube<br/><small>Cube MVP: presenters, scopes, navigation</small>"]
         deps["dependencies<br/><small>BOM — centralized versions</small>"]
     end
 
@@ -75,7 +79,10 @@ graph TD
         persistRest["persistence.rest<br/><small>REST controllers (Javalin)</small>"]
         persistClient["persistence.client<br/><small>REST client (OkHttp + Gson)</small>"]
         presentation["presentation<br/><small>Presenters, Scopes, navigation</small>"]
-        scripts["scripts<br/><small>DDL (DBCreate, DBReset)</small>"]
+        scripts["scripts<br/><small>DDL (DBCreate, DBReset), code generators</small>"]
+        design["design<br/><small>Design tokens (tokens.json)</small>"]
+        i18n["i18n<br/><small>UI texts, en-US and pt-BR</small>"]
+        docker["docker<br/><small>Two instances: compose</small>"]
         backend["backend<br/><small>Javalin 7 + Virtual Threads (fat JAR)</small>"]
         tests["tests<br/><small>Unit and workflow tests</small>"]
 
@@ -113,6 +120,8 @@ graph TD
 |--------|-----------|
 | **domain** | One package per entity (`product`, `user`, `purchase`, `purchaseitem`), each with the fluent entity, its `Criterion`-based criteria, codec and repository interface; `InvalidCartItemException`, `Role` (the list of roles), `StoreConfig`, `StoreTransactions` |
 | **persistence** | Groups `persistence.impl` — **jOOQ** implementation (type-safe DSL, classes generated in `br.com.wdc.store.persistence.impl.scheme.*` from the H2 schema), `*RepositoryImpl` classes that obtain the `DSLContext` via `StoreDSLContext.BEAN`, the framework's JSON query helpers, `StoreRepositoryBootstrap` for wiring —, `persistence.rest` (Javalin API; authorization by a data policy per entity — `UserDataPolicy`, `ProductDataPolicy`, `PurchaseDataPolicy`, `PurchaseItemDataPolicy`) and `persistence.client` (HTTP repositories over OkHttp) |
+| **design** | The design tokens (W3C `tokens.json`): the palette, spacing, radii and type, generated for every view technology (`GenerateDesignTokens`) — [ADR 0027](docs/adr/0027-design-tokens.md) |
+| **i18n** | The UI texts, one catalog per language (en-US, pt-BR); presenters put a `Message` (key + args) in the scopes and each view translates it — [ADR 0028](docs/adr/0028-ui-texts-in-one-catalog.md) |
 | **presentation** | `StoreApplication` (subject, cart, `PLACES`), presenter hierarchy (Root → Open/Restricted guards → Login \| Home → Product/Cart/Receipt, with the Products/Purchases panels as segments of Home), scopes with observed `Prop`s, calls named by verb (`XxxQuery`, `XxxCreate`/`XxxSave`/`XxxUpdate`/`XxxDelete`, or a verb of their own like `CredentialsCheck`) over the repositories, `CartManager`, places with `XxxKeys` and navigation by intents |
 
 ### Store — Frontend (View Implementations)
@@ -220,9 +229,8 @@ The deploy script supports the targets: `ios`, `ios-sim`, `ipad-sim`, `android`,
 # Via script (runs from work/, builds the JAR if it is missing)
 ./work/bin/start-server.sh [port]
 
-# Or directly, from work/ (the config file is resolved relative to the working directory)
-cd work
-java -jar ../fontes/br.com.wdc.cube.backend/target/br.com.wdc.cube.backend-1.0.0.jar [port]
+# Or directly, with the work directory (--workdir= or STORE_WORKDIR; there is no default)
+java -jar fontes/br.com.wdc.cube.backend/target/br.com.wdc.cube.backend-1.0.0.jar --workdir=work [port]
 ```
 
 - **Application:** http://localhost:8080
@@ -279,6 +287,8 @@ Test structure:
 | `BaseBusinessTest` | Business logic and repository tests |
 | `BasePresentationTest` | Full workflow tests with view mocks |
 
+**CI** (`.github/workflows/ci.yml`) runs on every push and pull request to `main`: `mvn clean install` with its tests, the React, React bridge, Flutter and Codename One tests, the four web frontends, then the compose setup with two instances checked by its `check.py`.
+
 ## Configuration
 
 Every Java host starts from an explicit **work directory**, given by `--workdir=<folder>` or `STORE_WORKDIR`; without one, or with a folder that does not exist, it refuses to start. Its subfolders are fixed: `config/` (`application.toml`; `application.local.toml`, next to it, overrides its keys), `data/`, `log/`, `temp/` and `frontend/`. The backend's is the repository's `work/` (`start-server.sh` passes it); the Vaadin and local SWT hosts each have their own `work/` inside their module.
@@ -298,12 +308,19 @@ Every Java host starts from an explicit **work directory**, given by `--workdir=
 
 [management]
 # token = "..."   # enables GET /metrics (Prometheus format), with Authorization: Bearer <token>
+
+[remote]
+# signingKey = "..."   # signs the remote session ids; generated into application.local.toml when absent
+
+[cluster]
+# peers = ["ws://store-a:8080", "ws://store-b:8080"]   # the mesh between instances (needs [security] jwt.secret)
 ```
 
 ## Operations
 
 - **Health:** `GET /health/live` (the process answers; `/health` is the same) and `GET /health/ready` (the database answers too; 503 when it does not, so a load balancer takes the instance out). Both open.
 - **Metrics:** `GET /metrics`, Prometheus format, only when `[management] token` is set and with `Authorization: Bearer <token>`: the JVM, every HTTP request by route as declared, sign-ins by outcome, sessions, remote view sessions and messages, remote transactions. Details in the [backend README](fontes/br.com.wdc.cube.backend/README.md#observability).
+- **Several instances:** user sessions and sign-in challenges are in the database, so any instance answers for any session; with `[cluster] peers` the instances keep a WebSocket mesh and tell each other the sessions, product images and remote view sessions that change. What they share and how to route them: [running-several-instances.md](docs/running-several-instances.md); a compose setup with two instances, PostgreSQL, nginx and Prometheus: [`br.com.wdc.store.docker`](fontes/br.com.wdc.store/br.com.wdc.store.docker/README.md).
 
 ## Security (RBAC)
 

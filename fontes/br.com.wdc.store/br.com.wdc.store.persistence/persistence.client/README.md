@@ -59,12 +59,13 @@ The inverse of the server's exception mapping: an error response becomes the exc
 | 400 | `InvalidRequestException` |
 | 403 | `AccessDeniedException` |
 | 409 | `TransactionConflictException` |
+| 410 | `UnknownTransactionException` (a remote transaction this server does not know) |
 | 429 | `TooManyRequestsException`, with the wait of `retryAfter` (the cap of open remote transactions, the sign-in limits) |
 | other | `BusinessException` |
 
 ### OkHttpTransport
 
-`HttpTransport` on OkHttp. It adds `Authorization: Bearer <token>` from the access-token supplier the authentication service registers, `X-Tx-Id` while a remote transaction is active (on every authenticated call: JSON, image reads and image writes), and `X-Client-Id` — an id per transport instance that identifies the owner of anonymous transactions on the server.
+`HttpTransport` on OkHttp. It adds `Authorization: Bearer <token>` from the access-token supplier the authentication service registers, `X-Tx-Id` while a remote transaction is active (on every authenticated call: JSON, image reads and image writes), and `X-Client-Id` — an id per transport instance: the client context that, with the user, owns its remote transactions on the server.
 
 ### RestAuthenticationService and RestAuthClient
 

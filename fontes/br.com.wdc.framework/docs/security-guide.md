@@ -299,7 +299,7 @@ CriterionTranslator.translateAny(List.of(enProduct.NAME, enProduct.DESCRIPTION),
 
 In the remote hosts (React, Flutter, TeaVM shell, Codename One) and in Vaadin, the presenters run on the server and query the repositories directly; the data policies do not apply there. The framework protects the channel; the presenter owns two duties.
 
-**Automatic** (`framework-cube-remote`): session ids are signed and cannot be forged; the client's sensitive values (its storage, the access token) are encrypted with a per-session AES-GCM key derived in the handshake; a navigation URL the server did not sign is replaced by the current state.
+**Automatic** (`framework-cube-remote`): session ids are signed and cannot be forged; the client's sensitive values (its storage, the access token) are encrypted with AES-GCM under a key agreed per connection in the handshake (ECDH P-256 + HKDF-SHA256, a new key on every reconnection); a navigation URL the server did not sign is replaced by the current state.
 
 **Yours:**
 
@@ -314,7 +314,7 @@ In the remote hosts (React, Flutter, TeaVM shell, Codename One) and in Vaadin, t
 
 - **Keep the scope to what the screen shows.** Everything in a scope reaches the client; mask on the server what the screen shows masked.
 
-- **Deploy with production keys and TLS.** The development defaults generate short RSA keys, and the protocol's own encryption covers only sensitive values; serve everything over HTTPS/WSS and replace the keys.
+- **Deploy with production keys and TLS.** The protocol's own encryption covers only sensitive values: serve everything over HTTPS/WSS, and set your own secrets — the key that signs the session ids and addresses (`[remote] signingKey` in the WDC Store), and the JWT secret.
 
 ---
 

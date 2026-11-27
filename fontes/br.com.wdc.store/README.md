@@ -85,10 +85,12 @@ Java compiled to JavaScript via TeaVM, packaged as a native app with Tauri 2. Sa
 
 | Module | Responsibility |
 |--------|-----------------|
+| [`design`](br.com.wdc.store.design/) | The design tokens (`tokens.json`): palette, spacing, radii, type, generated for every view technology |
+| [`i18n`](br.com.wdc.store.i18n/) | The UI texts, one catalog per language (en-US, pt-BR), generated for every view technology |
 | [`domain`](br.com.wdc.store.domain/) | Entities, repository contracts, criteria and codecs per entity; roles, config and transaction holders |
 | [`persistence`](br.com.wdc.store.persistence/) | Groups the repository implementations: `persistence.impl` (jOOQ), `persistence.client` (HTTP/OkHttp) and `persistence.rest` (Javalin API) |
 | [`presentation`](br.com.wdc.store.presentation/) | Hierarchical presenters, scopes, calls, navigation |
-| [`scripts`](br.com.wdc.store.scripts/) | DDL scripts (DBCreate, DBReset) |
+| [`scripts`](br.com.wdc.store.scripts/) | The schema and the seed (DBCreate, DBReset); the code generators (jOOQ classes, design tokens, UI texts, the REST API's contract `docs/openapi.json`) |
 | [`view.remote`](br.com.wdc.store.view.remote/) | Complete web frontend (React + Javalin + WebSocket) |
 | [`view.vaadin`](br.com.wdc.store.view.vaadin/) | Server-side web frontend (Vaadin 25 + Jetty 12 + Lumo theme) |
 | [`view.swt`](br.com.wdc.store.view.swt/) | Native desktop frontend (Eclipse SWT) |
@@ -97,6 +99,7 @@ Java compiled to JavaScript via TeaVM, packaged as a native app with Tauri 2. Sa
 | [`persistence.rest`](br.com.wdc.store.persistence/persistence.rest/) | REST controllers (Javalin) that expose the repositories over HTTP |
 | [`persistence.client`](br.com.wdc.store.persistence/persistence.client/) | REST client (OkHttp + the domain codecs) that implements the repositories over HTTP |
 | [`tests`](br.com.wdc.store.tests/) | Workflow and repository tests |
+| [`docker`](br.com.wdc.store.docker/) | Compose setup with two backend instances, PostgreSQL, nginx and Prometheus (not a Maven module) |
 
 ---
 

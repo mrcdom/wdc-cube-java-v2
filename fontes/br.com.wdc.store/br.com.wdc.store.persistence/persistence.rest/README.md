@@ -94,7 +94,7 @@ The write handlers (`insert`, `update`, `delete`, the image upload) are wrapped 
 - **Without `X-Tx-Id`, while the requester has a remote transaction open**: the write is refused with 409 — the header got lost, and committing it on its own would break the block's atomicity.
 - **Otherwise**: one transaction for the request (`StoreTransactions.BEAN.get().required(...)`), so a purchase and its items commit or roll back together.
 
-The owner of a remote transaction is `user:<userId>` for an authenticated requester, or `anon:<X-Client-Id>` when security is off. `RemoteTransactions.COORDINATOR` is filled by the composition root (the backend, or the tests). Details: [docs/data-layer.md → Client-Driven Remote Transactions](../../../../docs/data-layer.md#client-driven-remote-transactions-over-rest) and [docs/remote-transaction-identity-and-ownership.md](../../../../docs/remote-transaction-identity-and-ownership.md).
+The owner of a remote transaction is the client context that opened it (`X-Client-Id`), within the user's namespace: `user:<userId>:<X-Client-Id>` for an authenticated requester, `anon:<X-Client-Id>` when security is off ([ADR 0031](../../../../docs/adr/0031-remote-transaction-owned-by-user-and-client.md)). A call with a `txId` this server does not know — ended, reaped, or held by another backend instance — gets 410. `RemoteTransactions.COORDINATOR` is filled by the composition root (the backend, or the tests). Details: [docs/data-layer.md → Client-Driven Remote Transactions](../../../../docs/data-layer.md#client-driven-remote-transactions-over-rest) and [docs/remote-transaction-identity-and-ownership.md](../../../../docs/remote-transaction-identity-and-ownership.md).
 
 ## Security
 
@@ -122,6 +122,7 @@ The body is `{"error": "<message>"}`; `HttpFailure` in `persistence.client` turn
 | Missing or invalid token | 401 |
 | `AccessDeniedException` | 403 |
 | `TransactionConflictException` | 409 |
+| `UnknownTransactionException` (a remote transaction this server does not know: ended, reaped, or held by another instance) | 410 |
 | `TooManyRequestsException` (cap of open remote transactions, sign-in limits) | 429, with `Retry-After` and `retryAfter` when the wait is known |
 
 ## Usage

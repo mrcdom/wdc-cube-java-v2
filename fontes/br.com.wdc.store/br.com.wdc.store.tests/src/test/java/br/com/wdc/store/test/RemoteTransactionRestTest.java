@@ -19,8 +19,10 @@ import org.junit.Test;
 import org.junit.rules.ExternalResource;
 
 import br.com.wdc.framework.domain.exception.TransactionConflictException;
+import br.com.wdc.framework.domain.transaction.UnknownTransactionException;
 import br.com.wdc.store.domain.product.Product;
 import br.com.wdc.store.scripts.sgbd.DBReset;
+import br.com.wdc.store.persistence.client.OkHttpTransport;
 import br.com.wdc.store.persistence.client.RestTransactionService;
 import br.com.wdc.store.test.util.ResetDatabaseRule;
 import br.com.wdc.store.test.util.TestEnvironment;
@@ -158,6 +160,19 @@ public class RemoteTransactionRestTest {
         });
 
         assertArrayEquals(before, env.productRepo().fetchImage(id));
+    }
+
+    /** Through the HTTP client, the 410 comes back as the exception the server threw. */
+    @Test
+    public void anUnknownTransaction_comesBackAsTheServersException() {
+        var transport = new OkHttpTransport(env.baseUrl());
+        transport.setTransactionIdSupplier(() -> "no-such-transaction");
+        try {
+            transport.postJson("/api/tx/commit", "{}");
+            fail("a commit of an unknown transaction must fail");
+        } catch (UnknownTransactionException expected) {
+            // expected: 410
+        }
     }
 
     /** A transaction this server does not know — ended, reaped, or held by another instance — is gone: 410. */

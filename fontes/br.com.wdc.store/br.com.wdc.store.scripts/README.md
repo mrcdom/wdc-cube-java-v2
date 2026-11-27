@@ -30,8 +30,10 @@ new DBCreate()
 `run()`:
 
 1. initializes the dialect's JSON support (`JsonDialect.of(dialect).initialize(connection)`);
-2. creates each table that does not exist yet — `EN_USER`, `EN_PRODUCT`, `EN_PURCHASE`, `EN_PURCHASEITEM` — with its sequence (`SQ_USER`, `SQ_PRODUCT`, `SQ_PURCHASE`, `SQ_PURCHASEITEM`) and its indexes;
-3. runs `DBReset` when it created any table or `withReset()` was requested — unless `withSkipReset()` was called.
+2. creates each data table that does not exist yet — `EN_USER`, `EN_PRODUCT`, `EN_PURCHASE`, `EN_PURCHASEITEM` — with its sequence (`SQ_USER`, `SQ_PRODUCT`, `SQ_PURCHASE`, `SQ_PURCHASEITEM`) and its indexes;
+3. creates each security table that does not exist yet, without seeding: `EN_LOGIN_FAILURE` (failed sign-ins per account), `EN_USER_SESSION` (the users' sessions) and `EN_AUTH_NONCE` (the sign-in challenges in flight);
+4. converts the passwords an older database stored as MD5 digests into SCRAM-SHA-256 verifiers of the same password (widening the column if needed), so every user keeps signing in;
+5. runs `DBReset` when it created any data table or `withReset()` was requested — unless `withSkipReset()` was called.
 
 Each index sits next to its table with a comment naming the `OrderBy` of the criteria it serves (e.g. `IX_PRODUCT_PRICE` for `CHEAPEST_FIRST` and `MOST_EXPENSIVE_FIRST`): a new ordering comes in together with the index that supports it.
 
@@ -41,7 +43,7 @@ Column types that differ between the databases are chosen per dialect: in `EN_PR
 
 ## DBReset — the seed
 
-`DBReset.run()` deletes every row of the four tables and inserts the reference data through the repositories (`UserRepository.BEAN`, `ProductRepository.BEAN`, `PurchaseRepository.BEAN`) and the module's `StoreDSLContext.BEAN` — so it runs after `StoreRepositoryBootstrap.initialize`. It restarts each sequence at the next free id.
+`DBReset.run()` deletes every row of the four data tables and of the three security tables (failed sign-ins, sessions, challenges), and inserts the reference data through the repositories (`UserRepository.BEAN`, `ProductRepository.BEAN`, `PurchaseRepository.BEAN`) and the module's `StoreDSLContext.BEAN` — so it runs after `StoreRepositoryBootstrap.initialize`. It restarts each sequence at the next free id.
 
 | Data | Content |
 |------|---------|

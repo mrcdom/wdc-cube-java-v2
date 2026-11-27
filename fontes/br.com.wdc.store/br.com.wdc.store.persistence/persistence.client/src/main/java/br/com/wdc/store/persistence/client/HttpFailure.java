@@ -7,10 +7,11 @@ import br.com.wdc.framework.domain.exception.BusinessException;
 import br.com.wdc.framework.domain.exception.InvalidRequestException;
 import br.com.wdc.framework.domain.exception.TooManyRequestsException;
 import br.com.wdc.framework.domain.exception.TransactionConflictException;
+import br.com.wdc.framework.domain.transaction.UnknownTransactionException;
 
 /**
  * An API error response as the exception the server threw: the inverse of the {@code RepositoryApiRoutes} mapping
- * (400, 403, 409 and 429, with {@code {"error": "..."}} in the body, and the wait of a 429 in {@code retryAfter}). That
+ * (400, 403, 409, 410 and 429, with {@code {"error": "..."}} in the body, and the wait of a 429 in {@code retryAfter}). That
  * way whoever calls the remote repository gets the same exception it would get from the local repository.
  */
 public final class HttpFailure {
@@ -25,6 +26,7 @@ public final class HttpFailure {
             case 400 -> new InvalidRequestException(message);
             case 403 -> new AccessDeniedException(message);
             case 409 -> new TransactionConflictException(message);
+            case 410 -> new UnknownTransactionException(message);
             case 429 -> new TooManyRequestsException(message, retryAfterOf(body));
             default -> new BusinessException("HTTP " + status + (body != null && !body.isBlank() ? ": " + body : ""));
         };

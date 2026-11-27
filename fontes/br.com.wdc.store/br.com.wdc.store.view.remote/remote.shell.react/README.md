@@ -23,7 +23,7 @@ The protocol client (coordinator, WebSocket, crypto, storage) is the framework m
 graph TD
     src["src/"]
     src --> indexHtml["index.html"]
-    src --> scss["scss/<br/><small>app.scss, _swc.scss, _utilities.scss</small>"]
+    src --> scss["scss/<br/><small>app.scss, _swc.scss, _utilities.scss;<br/>generated/_tokens.scss (design tokens)</small>"]
     src --> scripts["scripts/"]
 
     scripts --> indexTsx["index.tsx<br/><small>Bootstrap: configure, register views, render</small>"]
@@ -35,6 +35,8 @@ graph TD
     scripts --> utils["utils/ — Utilities"]
     utils --> ViewUtils["ViewUtils.tsx<br/><small>BaseViewClass, BasePanelClass</small>"]
     utils --> OtherUtils["DateUtils.ts, NumberUtils.ts, EndpointUtils.ts"]
+    utils --> I18nUtils["I18n.ts, DatePattern.ts<br/><small>Texts and dates in the user's language</small>"]
+    scripts --> generated["generated/messages.ts<br/><small>The UI text catalog (GenerateMessages)</small>"]
 
     scripts --> views["views/ — Components (each with its *-sel.ts and .scss)"]
     views --> RootView["RootView.tsx<br/><small>Auth container</small>"]

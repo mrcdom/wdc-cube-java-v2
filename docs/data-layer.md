@@ -164,9 +164,10 @@ hand, the criterion format changed and the document kept describing the old one,
 describes does not fail when what it describes changes. By deriving, adding a field to the criterion makes it show up in the
 documentation in the same build.
 
-`OpenApiSpecTest` closes the rest: it checks that the documented fields and orderings are exactly those of the domain.
-Note what this test does **not** cover — removing a field from the criterion removes it from both sides, and the test keeps
-passing. What it catches is the specification falling behind the domain, which is the defect that actually occurred.
+`OpenApiSpecTest` closes the rest: it checks that the documented fields and orderings are exactly those of the domain, and
+that the document matches the API's contract committed in `docs/openapi.json` (`GenerateOpenApi`). The first check catches
+the specification falling behind the domain; the second catches a change that removes a field from both at once, which
+still agrees with itself: it shows as a diff of the contract, accepted by generating the file again.
 
 ### Ordering: provisioned concepts, not fields
 
@@ -585,7 +586,7 @@ Some effects of a write must wait for the commit: if they happen inside the tran
 
 It works the same in the three implementations: `TransactionServiceImpl` (JDBC and JTA), the server's `RemoteTransactionCoordinator` (the tasks of a remote transaction run at its commit, requested by the client), and the client's `RestTransactionService` (after the remote commit answered).
 
-The WDC Store uses it for the **product image cache**. `ProductRepositoryImpl` keeps each image it read outside a transaction in memory (`ProductImageCache`), and drops it in an `afterCommit` of the write that changed it (`updateImage`, an `update` of the image, a `delete`). Dropping it inside the transaction would let a read in between, which still sees the committed old image, put it back.
+The WDC Store uses it for the **product image cache**. `ProductRepositoryImpl` keeps each image it read outside a transaction in memory (`ProductImageCache`), and drops it in an `afterCommit` of the write that changed it (`updateImage`, an `update` of the image, a `delete`). Dropping it inside the transaction would let a read in between, which still sees the committed old image, put it back. The same `afterCommit` tells whoever listens (`ProductImageCache.onChanged`): with several backend instances, their mesh, so the others drop their copy too ([running-several-instances.md](running-several-instances.md)).
 
 ## The persistence.rest Module — The HTTP Surface
 
@@ -976,7 +977,7 @@ The `RemoteTransactions.COORDINATOR` holder lives in `persistence.rest` (server 
 - **Observability:** the coordinator exposes `stats()` (gauges of open txs/owners + cumulative counters) and logs reaper runs/rejections.
 - **Configuration:** timeouts (idle/lifetime), outcome retention and caps come from `application.toml` (`[database]` → `remoteTransaction.*`, in seconds), via `RemoteTransactionOptions.fromConfig`; when absent → the coordinator's defaults.
 
-> **In-depth design:** who owns a transaction, how that identifier is generated with uniqueness (local strategy vs. server-issued), the trust model against forged ids and the evolution toward **ownership per context (tab)** are in [Remote Transaction — Client Identity and Transaction Ownership](remote-transaction-identity-and-ownership.md).
+> **In-depth design:** who owns a transaction, how that identifier is generated with uniqueness (local strategy vs. server-issued), the trust model against forged ids and the **ownership per client context (tab)** are in [Remote Transaction — Client Identity and Transaction Ownership](remote-transaction-identity-and-ownership.md).
 
 ---
 

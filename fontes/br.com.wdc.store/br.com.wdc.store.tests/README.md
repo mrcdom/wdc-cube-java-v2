@@ -12,6 +12,7 @@ graph TD
     repository --> AbstractTests["Abstract*RepositoryTest (bases)<br/><small>Product(38) Purchase(34) PurchaseItem(26) User(28)</small>"]
     repository --> LocalTests["*RepositoryTest<br/><small>jOOQ repositories (H2)</small>"]
     repository --> RestTests["Rest*RepositoryTest<br/><small>REST via API</small>"]
+    repository --> SetTest["ProjectionSetTest<br/><small>A 1:N relation held in a Set</small>"]
 
     root --> LoginTest["StoreLoginTest.java<br/><small>Login flow</small>"]
     root --> CallTest["StoreCallTest.java<br/><small>Presentation calls</small>"]
@@ -21,7 +22,11 @@ graph TD
     root --> RoleTestN["RoleTest.java (3)<br/><small>Parsing the roles</small>"]
     root --> Policy["DataPolicyTest (13), UserDataPolicyRestTest (8),<br/>PurchaseDataPolicyRestTest (14)<br/><small>Data access policy: rules, and the REST API with authentication on</small>"]
     root --> Wire["EntityGraphRecursionTest, RelationKeyProjectionTest,<br/>FetchByIdEndpointTest, OrderByWireCompatibilityTest,<br/>OpenApiSpecTest<br/><small>Codecs, projections, REST API</small>"]
-    root --> Tx["TransactionServiceJtaTest,<br/>RemoteTransactionCoordinatorJtaTest,<br/>RemoteTransactionRestTest<br/><small>Transactions (JTA, remote)</small>"]
+    root --> Tx["TransactionServiceJtaTest,<br/>RemoteTransactionCoordinatorJtaTest,<br/>RemoteTransactionRestTest, RemoteTransactionOwnerRestTest,<br/>AfterCommitTest<br/><small>Transactions (JTA, remote, owner per client, after the commit)</small>"]
+    root --> SignIn["LoginSecurityRestTest, LoginThrottleTest,<br/>PasswordMigrationTest, SessionsAcrossInstancesTest,<br/>persistence.rest.AuthRateLimitTest<br/><small>SCRAM sign-in, limits, sessions in the database across instances</small>"]
+    root --> Images["ProductImageRestTest, ProductImageChangesTest<br/><small>Product images over REST; changes told after the commit</small>"]
+    root --> Generated["MessagesCatalogTest, DesignTokensTest<br/><small>The UI texts and the design tokens: catalogs and generated code in step</small>"]
+    root --> Misc["ApiResponseHeadersTest, StoreConfigTest,<br/>RemoteProtocolConformanceTest<br/><small>REST headers, the work directory, the remote protocol's fixtures</small>"]
 
     root --> mock["mock/"]
     mock --> AppMock["StoreApplicationMock.java"]

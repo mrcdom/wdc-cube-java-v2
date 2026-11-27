@@ -55,7 +55,7 @@ graph TD
 | **Model** | Server-driven (delta scopes) | Server-driven (component tree) | Direct in-memory access | Client-side (SPA) |
 | **Transport** | WebSocket (JSON delta) | Atmosphere (WebSocket/Push) | N/A (in-process) | REST (XMLHttpRequest) |
 | **Security** | Key per connection (ECDH + AES-GCM) + URL signing | HMAC-SHA256 URL signing | N/A (local process) | HMAC + JWT |
-| **Scalability** | Virtual Threads (~1K per connection) | Automatic Server Push | Single instance | Client-side (SPA) |
+| **Scalability** | Virtual Threads (~1K per connection); several instances behind a proxy, a tab's socket kept on one ([running-several-instances.md](../../../docs/running-several-instances.md)) | Automatic Server Push | Single instance | Client-side (SPA) |
 | **UI code** | TypeScript (React) / Dart (Flutter) / Java (TeaVM, SWT, Codename One) | Java | Java | Java (compiled to JS) |
 | **Presenters** | Same | Same | Same | Same |
 | **Scopes** | Same | Same | Same | Same |
@@ -240,8 +240,8 @@ cd fontes && mvn -q -DskipTests clean install && cd ..
 # Via script, from the repository root (port 8080 by default)
 ./work/bin/start-server.sh
 
-# Or directly
-java -jar fontes/br.com.wdc.cube.backend/target/br.com.wdc.cube.backend-1.0.0.jar
+# Or directly, with the work directory (--workdir= or STORE_WORKDIR; there is no default)
+java -jar fontes/br.com.wdc.cube.backend/target/br.com.wdc.cube.backend-1.0.0.jar --workdir=work
 ```
 
 ### Configuration
@@ -249,9 +249,6 @@ java -jar fontes/br.com.wdc.cube.backend/target/br.com.wdc.cube.backend-1.0.0.ja
 File `work/config/application.toml`:
 
 ```toml
-[app]
-basedir = ".."   # relative to config/, i.e. work/
-
 [database]
 # url = "jdbc:h2:file:..."
 # username = "sa"

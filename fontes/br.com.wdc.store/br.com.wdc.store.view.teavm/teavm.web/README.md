@@ -86,7 +86,7 @@ This lets you write `Sel.ROOT` instead of `SelUtility.PAGE_SCROLL_ROOT`, keeping
 
 ## Communication with the Server
 
-The repositories are the HTTP clients of `persistence.client` (`HttpProductRepository`, `HttpUserRepository`, ...), registered in the domain BEANs by `TeaVMRepositoryBootstrap`, over `FetchHttpTransport` (asynchronous `XMLHttpRequest` through TeaVM coroutines). Authentication uses HMAC-SHA256 computed in pure JavaScript (`BrowserCryptoProvider`) and is handled by `TeaVMAuthenticationService`; transactions spanning several REST calls go through `RestTransactionService`.
+The repositories are the HTTP clients of `persistence.client` (`HttpProductRepository`, `HttpUserRepository`, ...), registered in the domain BEANs by `TeaVMRepositoryBootstrap`, over `FetchHttpTransport` (asynchronous `XMLHttpRequest` through TeaVM coroutines). The sign-in is SCRAM-SHA-256 (`Scram`), with `BrowserCryptoProvider` (MD5 in JavaScript; SHA-256 and HMAC-SHA256 in Java compiled by TeaVM), handled by `TeaVMAuthenticationService`. Every call carries `X-Client-Id`, this tab's id (a UUID from `crypto.getRandomValues`, kept in the tab's `sessionStorage`): with the user, the owner of the tab's remote transactions; transactions spanning several REST calls go through `RestTransactionService`.
 
 Client storage: `BrowserSessionStorage` (session scope), `BrowserLocalStorage` (persistent scope) and `EncryptedLocalStorage` (the persistent scope's `secure()` view: AES-GCM with a non-extractable key kept in IndexedDB, entries under the `<shellId>:sec.` prefix and kept out of the plain scope).
 

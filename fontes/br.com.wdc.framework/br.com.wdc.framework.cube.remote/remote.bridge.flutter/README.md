@@ -79,7 +79,8 @@ class LoginView extends BaseView {
 class _LoginViewState extends BaseViewState<LoginView> {
   @override
   Widget build(BuildContext context) {
-    final errorMessage = scope['errorMessage'] as String?;
+    // a field as the scope serializes it: a value, a list, or an object such as a {"key", "args"} message
+    final errorMessage = scope['errorMessage'];
     // ...
   }
 

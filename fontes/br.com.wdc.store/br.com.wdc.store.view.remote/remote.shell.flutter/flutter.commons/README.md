@@ -11,7 +11,9 @@ graph TD
     lib["lib/"]
     entry["flutter_commons.dart<br/><small>Exports the package; re-exports remote_bridge_flutter</small>"]
     src["src/"]
-    dt["design_tokens.dart<br/><small>Design system colors, typography, spacing</small>"]
+    dt["design_tokens.dart<br/><small>Design system colors, typography, spacing (from the generated tokens)</small>"]
+    i18n["i18n.dart<br/><small>StoreI18n: texts and dates in the user's language</small>"]
+    gen["generated/<br/><small>messages.dart, store_tokens.dart (GenerateMessages, GenerateDesignTokens)</small>"]
     utils["utils/<br/><small>format_utils, url_utils</small>"]
     views["views/<br/><small>browser, root, login, home, products_panel, purchases_panel,<br/>product, cart, cart_item, receipt + view_registry</small>"]
     widgets["widgets/<br/><small>error_banner, hover_card, html_text, page_card, status_banner, view_header</small>"]
@@ -20,6 +22,8 @@ graph TD
     lib --> entry
     lib --> src
     src --> dt
+    src --> i18n
+    src --> gen
     src --> utils
     src --> views
     src --> widgets
