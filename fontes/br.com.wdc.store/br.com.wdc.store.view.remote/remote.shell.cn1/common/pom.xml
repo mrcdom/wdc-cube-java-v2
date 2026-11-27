@@ -73,7 +73,8 @@
                                     <available file="${user.home}/.codenameone/guibuilder.jar" property="codenameone.present"/>
 
                                     <mkdir dir="${user.home}/.codenameone"/>
-                                    <mkdir dir="${project.build.directory}/codenameone/tmpProject"/>
+                                    <!-- the updater copies its jars into the project's lib/ and does not create it -->
+                                    <mkdir dir="${project.build.directory}/codenameone/tmpProject/lib"/>
                                     <get src="https://www.codenameone.com/files/updates/UpdateCodenameOne.jar"
                                          dest="${user.home}/UpdateCodenameOne.jar"
                                          skipexisting="true"/>
