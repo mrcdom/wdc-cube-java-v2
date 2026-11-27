@@ -8,6 +8,7 @@ import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
@@ -40,8 +41,15 @@ public class RemoteTransactionOwnerRestTest {
     public ExternalResource resetDb = new ResetDatabaseRule(env);
 
     /** Two clients of jdoe: each transport has its own X-Client-Id. */
-    private final RestSession tabA = RestSession.signIn(env, "jdoe");
-    private final RestSession tabB = RestSession.signIn(env, "jdoe");
+    private RestSession tabA;
+    private RestSession tabB;
+
+    /** After the database is reset (the rule): a sign-in needs the seeded user. */
+    @Before
+    public void signInTwice() {
+        tabA = RestSession.signIn(env, "jdoe");
+        tabB = RestSession.signIn(env, "jdoe");
+    }
 
     private static String begin(RestSession tab) {
         var body = tab.transport()
