@@ -35,7 +35,7 @@ TEAVM="$FONTES/br.com.wdc.store/br.com.wdc.store.view.teavm"
 TARGETS=(
     "react|$REMOTE/remote.shell.react/build.sh|npm|remote.shell.react"
     "flutter|$REMOTE/remote.shell.flutter/flutter.web/build.sh|flutter|remote.shell.flutter"
-    "teavm.shell|$REMOTE/remote.shell.teavm/build.sh|mvn|remote.shell.teavm"
+    "teavm.shell|$REMOTE/remote.shell.teavm/build.sh|mvn,npm|remote.shell.teavm"
     "teavm.web|$TEAVM/teavm.web/build.sh|mvn,npm|teavm.web"
 )
 
