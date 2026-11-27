@@ -11,7 +11,6 @@ export const DEFAULT_LANGUAGE: Language = "en-US"
 export type MessageKey =
   | "alert.ok"
   | "alert.title"
-  | "alert.uriNotAccessible"
   | "app.byWedocode"
   | "app.name"
   | "app.store"
@@ -114,7 +113,6 @@ const TEXTS: Record<Language, Record<MessageKey, string>> = {
   "en-US": {
     "alert.ok": "OK",
     "alert.title": "Warning!",
-    "alert.uriNotAccessible": "The URI {uri} is not accessible",
     "app.byWedocode": "By WeDoCode",
     "app.name": "WDC Store",
     "app.store": "Store",
@@ -210,7 +208,6 @@ const TEXTS: Record<Language, Record<MessageKey, string>> = {
   "pt-BR": {
     "alert.ok": "OK",
     "alert.title": "Atenção!",
-    "alert.uriNotAccessible": "O endereço {uri} não está acessível",
     "app.byWedocode": "Por WeDoCode",
     "app.name": "WDC Store",
     "app.store": "Loja",

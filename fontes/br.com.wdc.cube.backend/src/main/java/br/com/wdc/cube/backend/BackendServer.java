@@ -281,6 +281,7 @@ public class BackendServer {
      */
     public void start() {
         try {
+            this.observability.attach(cleanUp);
             this.businessContext.configure(cleanUp);
             this.app = createJavalinApp();
             cleanUp.push(this.app::stop);

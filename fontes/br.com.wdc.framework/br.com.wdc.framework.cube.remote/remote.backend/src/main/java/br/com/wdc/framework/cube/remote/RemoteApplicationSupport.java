@@ -300,7 +300,10 @@ public class RemoteApplicationSupport {
 
     // :: Error handling
 
-    /** The host's alert for an unexpected error: what failed and the cause's message, in English (alert {@code -1}). */
+    /**
+     * The host's alert for an unexpected error (alert {@code -1}, with the cause's message): the client words it in its
+     * user's language.
+     */
     public void alertUnexpectedError(Log logger, String message, Throwable e) {
         this.lock.lock();
         try {

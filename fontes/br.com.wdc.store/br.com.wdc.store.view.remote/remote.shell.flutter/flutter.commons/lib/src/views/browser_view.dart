@@ -88,19 +88,20 @@ class _AppAlert extends StatelessWidget {
 
   const _AppAlert({required this.code, required this.args, this.onDismiss});
 
+  /// The host's alert of an unexpected error; its argument, when present, is the cause's message.
+  static const _alertUnexpectedError = -1;
+
   @override
   Widget build(BuildContext context) {
-    String message;
-    String? detail;
-    switch (code) {
-      case -1:
-        message = args.isNotEmpty ? args[0] : StoreI18n.text(MessageKeys.errorUnexpected);
-        detail = args.length > 1 ? args[1] : null;
-      case -2:
-        message = StoreI18n.text(MessageKeys.alertUriNotAccessible, {'uri': args.isNotEmpty ? args[0] : ''});
-        detail = args.length > 1 ? args[1] : null;
-      default:
-        message = args.isNotEmpty ? args[0] : StoreI18n.text(MessageKeys.errorUnexpected);
+    final first = args.isNotEmpty && args[0].isNotEmpty ? args[0] : null;
+    final String message;
+    if (code == _alertUnexpectedError) {
+      message = first != null
+          ? StoreI18n.text(MessageKeys.errorUnexpectedWithCause, {'cause': first})
+          : StoreI18n.text(MessageKeys.errorUnexpected);
+    } else {
+      // an application's own alert brings its text as its first argument
+      message = first ?? StoreI18n.text(MessageKeys.errorUnexpected);
     }
 
     return Padding(
@@ -108,7 +109,6 @@ class _AppAlert extends StatelessWidget {
       child: StatusBanner(
         title: StoreI18n.text(MessageKeys.alertTitle),
         message: message,
-        detail: detail,
         onDismiss: onDismiss,
         severity: StatusSeverity.error,
       ),

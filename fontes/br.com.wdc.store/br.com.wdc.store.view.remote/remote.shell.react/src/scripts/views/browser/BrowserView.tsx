@@ -78,22 +78,18 @@ type AppAlertProps = {
   onDismiss?: () => void
 }
 
-function AppAlert(props: AppAlertProps) {
-  let msgNode: React.ReactNode | null = null
-  let detailMessage: string | null = null
-  switch (props.code) {
-    case -1:
-      msgNode = props.args[0]
-      detailMessage = props.args[1]
-      break
-    case -2:
-      msgNode = t("alert.uriNotAccessible", { uri: props.args[0] ?? "" })
-      detailMessage = props.args[1]
-      break
-    default:
-      msgNode = props.args.length > 0 ? props.args[0] : t("error.unexpected")
-  }
+/** The host's alert of an unexpected error; its argument, when present, is the cause's message. */
+const ALERT_UNEXPECTED_ERROR = -1
 
+/** The alert's text in the user's language; an application's own alert brings its text as its first argument. */
+function alertText(code: number, args: string[]): string {
+  if (code === ALERT_UNEXPECTED_ERROR) {
+    return args[0] ? t("error.unexpectedWithCause", { cause: args[0] }) : t("error.unexpected")
+  }
+  return args[0] ? args[0] : t("error.unexpected")
+}
+
+function AppAlert(props: AppAlertProps) {
   return (
     <div className={Sel.alertError} style={{ margin: "16px" }}>
       <span className={Sel.alertErrorIcon}>
@@ -103,12 +99,7 @@ function AppAlert(props: AppAlertProps) {
         <div className={clsx(Sel.fontBold, Sel.textSm)} style={{ color: "var(--app-error-text)" }}>
           {t("alert.title")}
         </div>
-        <span className={Sel.alertErrorText}>{msgNode}</span>
-        {detailMessage && (
-          <div className={clsx(Sel.textXs, Sel.mt4)} style={{ color: "var(--app-error-text)" }}>
-            {detailMessage}
-          </div>
-        )}
+        <span className={Sel.alertErrorText}>{alertText(props.code, props.args)}</span>
       </div>
       <ActionButton quiet size="s" onClick={props.onDismiss} style={{ marginLeft: "auto" }}>
         {t("alert.ok")}

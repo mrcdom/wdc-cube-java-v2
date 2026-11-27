@@ -21,11 +21,6 @@ public final class Messages {
         return Message.of(StoreMessages.ALERT_TITLE);
     }
 
-    /** The URI &#123;uri&#125; is not accessible */
-    public static Message alertUriNotAccessible(Object uri) {
-        return Message.of(StoreMessages.ALERT_URI_NOT_ACCESSIBLE, "uri", uri);
-    }
-
     /** By WeDoCode */
     public static Message appByWedocode() {
         return Message.of(StoreMessages.APP_BY_WEDOCODE);

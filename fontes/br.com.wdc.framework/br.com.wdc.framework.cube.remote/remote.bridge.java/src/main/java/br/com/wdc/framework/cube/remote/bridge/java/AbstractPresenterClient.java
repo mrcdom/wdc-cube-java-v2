@@ -99,12 +99,6 @@ public abstract class AbstractPresenterClient {
         return v != null ? v.intValue() : 0;
     }
 
-    /** Returns the current {@code errorMessage} from the scope, or {@code null} if absent. */
-    public String errorMessage() {
-        var s = scope();
-        return s != null ? s.getString("errorMessage") : null;
-    }
-
     /** Returns {@code true} if the current {@code errorCode} is non-zero. */
     public boolean hasError() {
         return errorCode() != 0;

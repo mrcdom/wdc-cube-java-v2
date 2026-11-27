@@ -86,6 +86,7 @@ public class ObservabilityTest {
             observability.configure(config);
             config.routes.get("/items/{id}", ctx -> ctx.result("item " + ctx.pathParam("id")));
         });
+        observability.attach(cleanUp);
         observability.start(cleanUp);
         app.start(0);
         cleanUp.push(app::stop);
