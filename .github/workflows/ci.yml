@@ -40,12 +40,12 @@ jobs:
           channel: stable
           cache: true
 
-      # the reactor builds the Flutter desktop app for this platform (Linux: GTK) and the SWT views; xvfb gives SWT a
-      # display
+      # the reactor builds the Flutter desktop app for this platform (Linux: GTK, and libsecret for its secure storage)
+      # and the SWT views; xvfb gives SWT a display
       - name: Linux packages
         run: |
           sudo apt-get update
-          sudo apt-get install -y --no-install-recommends clang cmake ninja-build pkg-config libgtk-3-dev liblzma-dev xvfb
+          sudo apt-get install -y --no-install-recommends clang cmake ninja-build pkg-config libgtk-3-dev liblzma-dev libsecret-1-dev xvfb
 
       - name: Maven build and tests
         working-directory: fontes
