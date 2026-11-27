@@ -11,6 +11,8 @@ import java.util.function.ToLongFunction;
 
 import javax.sql.DataSource;
 
+import br.com.wdc.cube.backend.cluster.ClusterMesh;
+import br.com.wdc.cube.backend.cluster.StoreCluster;
 import br.com.wdc.framework.commons.log.Log;
 import br.com.wdc.framework.commons.util.Defer;
 import br.com.wdc.framework.cube.remote.RemoteApplicationRegistry;
@@ -46,7 +48,8 @@ import io.micrometer.prometheusmetrics.PrometheusMeterRegistry;
  * transactions, remote views) are read from what it exposes.
  * <p>
  * <b>Health</b>, open, for load balancers: {@code GET /health/live} (the process answers; also {@code /health}) and
- * {@code GET /health/ready} (the database answers; 503 when it does not).
+ * {@code GET /health/ready} (the database answers; 503 when it does not), with how many other instances are connected,
+ * when there is a mesh ({@code cluster.peers}).
  */
 public final class Observability {
 
@@ -62,6 +65,7 @@ public final class Observability {
     private final Supplier<DataSource> dataSource;
     private final Supplier<RemoteApplicationRegistry<?>> remoteApps;
     private final Supplier<RemoteTransactionCoordinator> transactions;
+    private final Supplier<StoreCluster> cluster;
     private final PrometheusMeterRegistry registry = new PrometheusMeterRegistry(PrometheusConfig.DEFAULT);
 
     /**
@@ -69,13 +73,15 @@ public final class Observability {
      * @param dataSource   what the readiness check asks
      * @param remoteApps   the remote view sessions, once the host is configured
      * @param transactions the REST API's remote transactions, when there is a coordinator
+     * @param cluster      the mesh to the other instances, when there is one
      */
     public Observability(String token, Supplier<DataSource> dataSource, Supplier<RemoteApplicationRegistry<?>> remoteApps,
-            Supplier<RemoteTransactionCoordinator> transactions) {
+            Supplier<RemoteTransactionCoordinator> transactions, Supplier<StoreCluster> cluster) {
         this.token = token == null || token.isBlank() ? null : token.trim();
         this.dataSource = dataSource;
         this.remoteApps = remoteApps;
         this.transactions = transactions;
+        this.cluster = cluster;
     }
 
     /** The registry the meters are in. */
@@ -104,6 +110,7 @@ public final class Observability {
         bindSessions();
         bindRemoteViews(cleanUp);
         bindRemoteTransactions();
+        bindCluster();
         if (token == null) {
             LOG.info("Metrics off: management.token is not set");
         }
@@ -225,14 +232,45 @@ public final class Observability {
         ctx.result(registry.scrape());
     }
 
+    private void bindCluster() {
+        Gauge.builder("store.cluster.peers", () -> {
+            var mesh = mesh();
+            return mesh == null ? 0 : mesh.connectedPeers().size();
+        })
+                .description("Other instances connected to this one")
+                .register(registry);
+        Gauge.builder("store.cluster.links.ready", () -> {
+            var mesh = mesh();
+            return mesh == null ? 0 : mesh.readyLinks();
+        })
+                .description("Connections from this instance to others, ready")
+                .register(registry);
+    }
+
+    private ClusterMesh mesh() {
+        var current = cluster.get();
+        return current == null ? null : current.mesh();
+    }
+
     private void live(Context ctx) {
         ctx.json(Map.of("status", "UP"));
     }
 
     private void ready(Context ctx) {
         var database = databaseAnswers();
+        var body = new LinkedHashMap<String, Object>();
+        body.put("status", database ? "UP" : "DOWN");
+        body.put("checks", Map.of("database", database ? "UP" : "DOWN"));
+        // the mesh is told, not checked: an instance serves on its own while its peers are away
+        var mesh = mesh();
+        if (mesh != null) {
+            var clusterState = new LinkedHashMap<String, Object>();
+            clusterState.put("peers", mesh.connectedPeers().size());
+            clusterState.put("links", mesh.readyLinks());
+            body.put("cluster", clusterState);
+        }
         ctx.status(database ? 200 : 503);
-        ctx.json(Map.of("status", database ? "UP" : "DOWN", "checks", Map.of("database", database ? "UP" : "DOWN")));
+        ctx.json(body);
     }
 
     /**

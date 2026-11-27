@@ -5,15 +5,19 @@
 package br.com.wdc.store.persistence.impl.scheme;
 
 
+import br.com.wdc.store.persistence.impl.scheme.tables.EnAuthNonce;
 import br.com.wdc.store.persistence.impl.scheme.tables.EnLoginFailure;
 import br.com.wdc.store.persistence.impl.scheme.tables.EnProduct;
 import br.com.wdc.store.persistence.impl.scheme.tables.EnPurchase;
 import br.com.wdc.store.persistence.impl.scheme.tables.EnPurchaseitem;
 import br.com.wdc.store.persistence.impl.scheme.tables.EnUser;
+import br.com.wdc.store.persistence.impl.scheme.tables.EnUserSession;
 
 
 @SuppressWarnings({ "all", "unchecked", "rawtypes", "this-escape" })
 public class Tables {
+
+    public static final EnAuthNonce EN_AUTH_NONCE = EnAuthNonce.EN_AUTH_NONCE;
 
     public static final EnLoginFailure EN_LOGIN_FAILURE = EnLoginFailure.EN_LOGIN_FAILURE;
 
@@ -24,4 +28,6 @@ public class Tables {
     public static final EnPurchaseitem EN_PURCHASEITEM = EnPurchaseitem.EN_PURCHASEITEM;
 
     public static final EnUser EN_USER = EnUser.EN_USER;
+
+    public static final EnUserSession EN_USER_SESSION = EnUserSession.EN_USER_SESSION;
 }

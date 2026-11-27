@@ -6,6 +6,10 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.fail;
 
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -154,5 +158,19 @@ public class RemoteTransactionRestTest {
         });
 
         assertArrayEquals(before, env.productRepo().fetchImage(id));
+    }
+
+    /** A transaction this server does not know — ended, reaped, or held by another instance — is gone: 410. */
+    @Test
+    public void aCallInAnUnknownTransaction_isGone() throws Exception {
+        var request = HttpRequest.newBuilder(URI.create(env.baseUrl() + "/api/tx/commit"))
+                .header("X-Tx-Id", "no-such-transaction")
+                .POST(HttpRequest.BodyPublishers.noBody())
+                .build();
+
+        var response = HttpClient.newHttpClient()
+                .send(request, HttpResponse.BodyHandlers.ofString());
+
+        assertEquals(410, response.statusCode());
     }
 }

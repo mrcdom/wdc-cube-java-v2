@@ -119,3 +119,10 @@ jwt.secret = "wdc-store-jwt-s3cr3t-k3y-ch4ng3-1n-pr0duct10n"
 [simulation]
 # Simulate slow login (adds 3s delay in LoginPresenter)
 slowLogin = false
+
+[cluster]
+# The backend instances that serve the same clients, as WebSocket addresses; the same list can serve every instance
+# (each one finds itself in it). They tell each other the sessions renewed or ended, the product images changed and
+# the remote view sessions that moved. Needs [security] jwt.secret, the same on every instance. Outside a private
+# network, use wss:// addresses. See docs/running-several-instances.md.
+# peers = ["ws://store-a:8080", "ws://store-b:8080"]

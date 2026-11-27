@@ -24,7 +24,8 @@ import br.com.wdc.store.domain.user.UserRepository;
 
 /**
  * Signs users in with SCRAM-SHA-256 ({@link Scram}) against the verifier each user has in the database, and keeps the
- * sessions ({@link AccessContextCache}) and their JWTs. Reads the credentials, the verifier included, from the user
+ * sessions ({@link AccessContextCache}) and their JWTs. Sessions and challenges are kept in the database, so that any
+ * backend instance carries on what another began. Reads the credentials, the verifier included, from the user
  * repository itself — the data policies guard the REST API, not the repositories.
  * <p>
  * The answers do not tell whether a user exists: an unknown user gets a challenge with made-up parameters, the same
@@ -50,12 +51,16 @@ public final class AuthenticationServiceImpl implements AuthenticationService {
 	private final ScramVerifier decoyVerifier = scram.verifier("decoy", new byte[ScramVerifier.SALT_SIZE], 1);
 
 	public AuthenticationServiceImpl(UserRepository rawUserRepo, String jwtSecret) {
-		this(rawUserRepo, jwtSecret, new LoginThrottle());
+		this(rawUserRepo, jwtSecret, SessionEvents.NONE, new LoginThrottle());
 	}
 
-	public AuthenticationServiceImpl(UserRepository rawUserRepo, String jwtSecret, LoginThrottle throttle) {
+	/**
+	 * @param events how the other backend instances learn of the sessions that change here, and this one of theirs
+	 */
+	public AuthenticationServiceImpl(UserRepository rawUserRepo, String jwtSecret, SessionEvents events,
+			LoginThrottle throttle) {
 		this.rawUserRepo = rawUserRepo;
-		this.cache = new AccessContextCache(jwtSecret);
+		this.cache = new AccessContextCache(jwtSecret, events);
 		this.nonceStore = new NonceStore();
 		this.throttle = throttle;
 		this.decoySaltKey = hmac("wdc-store-scram-decoy".getBytes(StandardCharsets.UTF_8),
@@ -74,9 +79,9 @@ public final class AuthenticationServiceImpl implements AuthenticationService {
 		var verifier = userName == null ? null : ScramVerifier.parse(passwordOf(findUser(userName)));
 		var salt = verifier != null ? verifier.salt() : decoySalt(userName == null ? "" : userName);
 		var iterations = verifier != null ? verifier.iterations() : ScramVerifier.DEFAULT_ITERATIONS;
-		var nonce = nonceStore.generate(userName);
-		return new ChallengeResult(nonce, Base64.getEncoder().encodeToString(salt), iterations,
-				nonceStore.expiresAt(nonce));
+		var issued = nonceStore.generate(userName);
+		return new ChallengeResult(issued.nonce(), Base64.getEncoder().encodeToString(salt), iterations,
+				issued.expiresAt());
 	}
 
 	@Override

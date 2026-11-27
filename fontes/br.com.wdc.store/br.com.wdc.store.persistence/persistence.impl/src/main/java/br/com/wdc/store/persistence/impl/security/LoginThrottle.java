@@ -142,7 +142,8 @@ public final class LoginThrottle {
 		return LocalDateTime.ofInstant(instant, ZoneOffset.UTC);
 	}
 
-	private static String key(String userName) {
+	/** How a user name is kept: trimmed, in lower case, a longer one than the column by its SHA-256. */
+	static String key(String userName) {
 		var key = userName.trim().toLowerCase(Locale.ROOT);
 		if (key.length() <= MAX_KEY) {
 			return key;

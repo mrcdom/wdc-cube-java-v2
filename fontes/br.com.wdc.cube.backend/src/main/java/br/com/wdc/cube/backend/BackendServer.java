@@ -86,7 +86,8 @@ public class BackendServer {
         this.corsSettings = corsSettings;
         var config = StoreConfig.getConfig();
         this.observability = new Observability(config == null ? null : config.get("management.token"),
-                businessContext::dataSource, RemoteHostBootstrap::registry, RemoteTransactions.COORDINATOR::get);
+                businessContext::dataSource, RemoteHostBootstrap::registry, RemoteTransactions.COORDINATOR::get,
+                businessContext::cluster);
     }
 
     public BackendServer() {
@@ -112,6 +113,9 @@ public class BackendServer {
             config.jetty.modifyServletContextHandler(handler -> {
                 handler.getMimeTypes().addMimeMapping("wasm", "application/wasm");
                 handler.getMimeTypes().addMimeMapping("mjs", "application/javascript");
+                // a request from a page served here is not cross-origin, at whatever address the server is reached
+                handler.addFilter(new FilterHolder(new SameOriginFilter()), "/*",
+                        java.util.EnumSet.of(jakarta.servlet.DispatcherType.REQUEST));
                 var filterHolder = new FilterHolder(new BinaryContentTypeFilter());
                 handler.addFilter(filterHolder, "/*", java.util.EnumSet.of(jakarta.servlet.DispatcherType.REQUEST));
             });
@@ -176,6 +180,9 @@ public class BackendServer {
 
         // Remote host: WebSocket dispatcher + session cookies
         RemoteHostBootstrap.configure(config);
+
+        // The mesh between instances (cluster.peers): its route, and the remote view sessions it tells
+        businessContext.configureCluster(config, cleanUp);
 
         // Dev-mode live reload: WebSocket + notify endpoint
         if (devMode) {
@@ -283,6 +290,7 @@ public class BackendServer {
 
             app.start(port);
             LOG.info("Javalin server started on port {}", port);
+            this.businessContext.startCluster();
         } catch (Exception e) {
             LOG.error("Failed to start Javalin server", e);
             throw new AssertionError("Server startup failed", e);

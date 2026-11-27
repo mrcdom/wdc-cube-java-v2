@@ -45,14 +45,14 @@ public final class RemoteHostBootstrap {
     private RemoteHostBootstrap() {
     }
 
-    /**
-     * Starts the application registry (flush loop, expiry checker).
-     */
     /** The remote view sessions, once {@link #configure} ran; {@code null} before. */
     public static RemoteApplicationRegistry<?> registry() {
         return module == null ? null : module.getRegistry();
     }
 
+    /**
+     * Starts the application registry (flush loop, expiry checker).
+     */
     public static void start(Defer cleanUp) {
         module.start(cleanUp);
     }

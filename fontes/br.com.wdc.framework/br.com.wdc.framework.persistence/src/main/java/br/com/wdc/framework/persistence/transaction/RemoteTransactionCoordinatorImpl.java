@@ -14,6 +14,7 @@ import br.com.wdc.framework.domain.exception.TransactionConflictException;
 import br.com.wdc.framework.domain.exception.TransactionLimitExceededException;
 import br.com.wdc.framework.domain.transaction.AfterCommitTasks;
 import br.com.wdc.framework.domain.transaction.TransactionSystemException;
+import br.com.wdc.framework.domain.transaction.UnknownTransactionException;
 
 /**
  * Remote transaction coordinator (server side), built on {@link TransactionScope}.
@@ -242,7 +243,7 @@ public final class RemoteTransactionCoordinatorImpl implements RemoteTransaction
     private void finishAlreadyFinalized(String txId, String ownerKey, boolean rollback) {
         var prior = outcomes.get(txId);
         if (prior == null) {
-            throw new TransactionSystemException("Unknown or expired remote transaction: " + txId);
+            throw new UnknownTransactionException("Unknown or expired remote transaction: " + txId);
         }
         verifyOwner(prior.owner, ownerKey);
         if (prior.committed != !rollback) {
@@ -289,7 +290,7 @@ public final class RemoteTransactionCoordinatorImpl implements RemoteTransaction
     private Entry require(String txId) {
         var entry = registry.get(txId);
         if (entry == null) {
-            throw new TransactionSystemException("Unknown or expired remote transaction: " + txId);
+            throw new UnknownTransactionException("Unknown or expired remote transaction: " + txId);
         }
         return entry;
     }
